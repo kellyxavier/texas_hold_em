@@ -4,23 +4,14 @@ open Deck
     Representation of a player in the game.
 *)
 
-(** The type [status] represents the status of a player*)
-type status =
-  | Active
-  | AllIn
-  | Folded
-  | Out
+(** The abstract type [status] represents the status of a player*)
+type status
 
-(** The type [hand] represents the hand of a player*)
-type hand = card list
+(** The abstract type [hand] represents the hand of a player*)
+type hand
+
 (** The abstract type of values representing players. *)
-type player =
-  {
-    name: string;
-    (* h : hand; *)
-    money : int;
-    s : status
-  }
+type player
 
 (**[create_player n] is a player with name n, no hand, starting money of 5000,
    and status Active*)
@@ -45,7 +36,7 @@ val change_status : player -> status -> player
 
 (**[new_round p] is the player [p] with status updated for new round 
    and a new hand *)
-val new_round : player -> status -> player
+val new_round : player -> player
 
 
 

@@ -1,5 +1,6 @@
 # assignment
-doc
+doc.public
+doc.private
 
 # ocaml
 *.cmo

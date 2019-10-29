@@ -12,7 +12,7 @@ type card = (suit * int)
 type deck = card list
 
 (** [shuffle] is a randomized deck of 52 cards without duplicates. *)
-val shuffle : deck
+val shuffle : deck -> deck
 
 (** [draw_card n d] is a list of [n] cards drawn from [d]. 
     Raises [EmptyDeck] if [n] is greater than the number of cards in [d]. *)
