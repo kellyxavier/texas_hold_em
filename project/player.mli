@@ -7,8 +7,8 @@ open Deck
 (** The abstract type [status] represents the status of a player*)
 type status
 
-(** The abstract type [hand] represents the hand of a player*)
-type hand
+(** The abstract type [blnid] represents the blind of a player*)
+type blind
 
 (** The abstract type of values representing players. *)
 type player
@@ -18,7 +18,10 @@ type player
 val create_player : string -> player
 
 (**[hand p] is a deck of two cards representing the hand of player [p]. *)
-val hand : player -> hand
+val hand : player -> card list
+
+(**[change_hand p h] is the player [p] with hand [h]. *)
+val change_hand : player -> int -> player
 
 (**[money p] is the amount of money player [p] currently has. *)
 val money : player -> int
@@ -27,16 +30,12 @@ val money : player -> int
    [p] currently has. *)
 val change_money : player -> int -> player
 
-
 (**[status p] is the current status of player [p]. *)
 val status : player -> status
 
 (**[change_status p s] is the player [p] with status [s] *)
 val change_status : player -> status -> player
 
-(**[new_round p] is the player [p] with status updated for new round 
-   and a new hand *)
-val new_round : player -> player
 
 
 

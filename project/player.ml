@@ -1,38 +1,42 @@
 open Deck
 
-type status =
+type s =
   | Active
   | AllIn
   | Folded
   | Out
 
-type hand = card list
+type b =
+  | Big
+  | Little
+  | None
 
 type player =
   {
     name: string;
-    h : hand;
+    hand : card list;
     money : int;
-    s : status
+    status : s;
+    blind : b
   }
 
 let create_player n = 
-  failwith "unimplemented"
+  {name = n; hand = []; money = 5000; status = Active; blind = None}
 
 let hand p =
-  failwith "unimplemented"
+  p.hand
+
+let change_hand p h =
+  {p with hand = h}
 
 let money p =
-  failwith "unimplemented"
+  p.money
 
 let change_money p m =
-  failwith "unimplemented"
+  {p with money = p.money + m}
 
 let status p =
-  failwith "unimplemented"
+  p.status
 
-let change_status p s =
-  failwith "unimplmented"
-
-let new_round p =
-  failwith "unimplemented"
+let change_status p st =
+  {p with status = st}
