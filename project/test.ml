@@ -3,7 +3,7 @@ open Deck
 open Player
 
 
-let player p1 = create_player "kelly"
+let p1 = create_player "kelly"
 
 let deck_tests =
   [
