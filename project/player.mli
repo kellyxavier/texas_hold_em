@@ -18,10 +18,10 @@ type player
 val create_player : string -> player
 
 (**[hand p] is a deck of two cards representing the hand of player [p]. *)
-val hand : player -> card list
+val hand : player -> deck
 
 (**[change_hand p h] is the player [p] with hand [h]. *)
-val change_hand : player -> card list -> player
+val change_hand : player -> deck-> player
 
 (**[money p] is the amount of money player [p] currently has. *)
 val money : player -> int

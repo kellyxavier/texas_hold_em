@@ -13,7 +13,8 @@ let deck_tests =
 let player_tests =
   [
     "tests player's hand is empty " >:: (fun _ -> 
-        assert_equal [] (p1 |> hand));
+        assert_equal empty (p1 |> hand));
+
   ]
 
 let suite =

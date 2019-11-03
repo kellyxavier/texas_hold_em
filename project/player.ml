@@ -14,14 +14,14 @@ type b =
 type player =
   {
     name: string;
-    hand : card list;
+    hand : deck;
     money : int;
     status : s;
     blind : b
   }
 
 let create_player n = 
-  {name = n; hand = []; money = 5000; status = Active; blind = None}
+  {name = n; hand = empty; money = 5000; status = Active; blind = None}
 
 let hand p =
   p.hand
