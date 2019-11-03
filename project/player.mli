@@ -21,7 +21,7 @@ val create_player : string -> player
 val hand : player -> card list
 
 (**[change_hand p h] is the player [p] with hand [h]. *)
-val change_hand : player -> int -> player
+val change_hand : player -> card list -> player
 
 (**[money p] is the amount of money player [p] currently has. *)
 val money : player -> int
