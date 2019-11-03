@@ -2,6 +2,14 @@
     Representation of a deck of cards.
 *)
 
+(** [EmptyDeck] is the exception raised when actions are performed on a deck
+    without enough cards to complete it. *)
+exception EmptyDeck
+
+(** [InvalidArgument] is the exception raise when invalid parameters are used
+    on a function. *)
+exception InvalidArgument
+
 (** The type of a card suit. *)
 type suit = Clubs | Diamonds | Hearts | Spades
 
@@ -26,7 +34,8 @@ val is_empty : deck -> bool
 
 (** [draw_card n d] is a tuple of a list of [n] cards that are not in [d] and
     the deck which remains after the cards are drawn. 
-    Raises [EmptyDeck] if [n] is greater than the number of cards in [d]. *)
+    Raises [EmptyDeck] if [n] is greater than the number of cards in [d]. 
+    Raises [InvalidArgument] if [n] is less than 0. *)
 val draw_card : int -> deck -> deck * deck
 
 (** [to_list d] is a list of deck. The cards are a tuple of a suit and rank. *)

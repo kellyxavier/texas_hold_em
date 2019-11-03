@@ -1,6 +1,6 @@
-(** [EmptyDeck] is the exception raised when actions are performed on a deck
-    without enough cards to complete it. *)
 exception EmptyDeck
+
+exception InvalidArgument
 
 type suit = Clubs | Diamonds | Hearts | Spades
 
@@ -56,7 +56,8 @@ let shuffle =
 (** [draw_card_help n d lst] is a tail-recursive implementation of draw_card
     which returns [lst]. *)
 let rec draw_card_help n d lst =
-  if n > 0 
+  if n < 0 then raise InvalidArgument
+  else if n > 0 
   then match d with
   | [] -> raise EmptyDeck
   | h :: t -> draw_card_help (n - 1) t (h :: lst)
