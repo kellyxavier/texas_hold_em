@@ -4,6 +4,8 @@ exception EmptyDeck
 
 type suit = Clubs | Diamonds | Hearts | Spades
 
+(** The second element in the tuple is the rank of the card. Jack is 11, Queen
+    is 12, King is 13, and Ace is 1. *)
 type card = (suit * int)
 
 type deck = card list
@@ -23,19 +25,16 @@ let standard_deck = [
   (Spades, 11); (Spades, 12); (Spades, 13)
   ]
 
-(** [get_card n d r] returns a tuple of the [n]th card in [d] and [r] which is
-    [d] without the [n]th card. [r] might not be in same order as [d] was.
+(** [get_card n d r] returns a tuple of the [n]th card in [d] and [r] which are
+    all cards in [d] preceeding the [n]th card. [r] might not be in same order 
+    as [d] was.
     Raises [EmptyDeck] is [n] is greater than the length of [d]. *)
 let rec get_card n d r =
-  if n > 0
-  then
-    match d with
-    | [] -> raise EmptyDeck
-    | h :: t -> get_card (n - 1) t (h :: r)
-  else
-    match d with
-    | [] -> raise EmptyDeck
-    | h :: t -> (h, List.rev_append r t)
+  match d with
+  | [] -> raise EmptyDeck
+  | h :: t ->
+    if n > 0 then get_card (n - 1) t (h:: r)
+    else (h, List.rev_append r t)
 
 (** [shuffle_help n d lst] is a tail-recursive implmenentation of shuffle
     which returns [lst]. *)
@@ -49,6 +48,8 @@ let rec shuffle_help n d lst =
 let shuffle =
   shuffle_help 52 standard_deck []
 
+let shuffle d = failwith "Unimplemented"
+
 (** [draw_card_help n d lst] is a tail-recursive implementation of draw_card
     which returns [lst]. *)
 let rec draw_card_help n d lst =
@@ -56,7 +57,7 @@ let rec draw_card_help n d lst =
   then match d with
   | [] -> raise EmptyDeck
   | h :: t -> draw_card_help (n - 1) t (h :: lst)
-  else lst
+  else (lst, d)
 
 let draw_card n d =
   draw_card_help n d []

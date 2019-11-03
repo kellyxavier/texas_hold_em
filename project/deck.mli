@@ -3,18 +3,21 @@
 *)
 
 (** The type of a card suit. *)
-type suit = Clubs | Diamonds | Hearts | Spades
+type suit
 
-(** The type of a card. The second field int represents the rank of the card,
-    with the Jack being 11, Queen being 12, King being 13, and Ace is 1. *)
-type card = (suit * int)
+(** The type of a card. *)
+type card
 
 (** The type of a deck. *)
-type deck = card list
+type deck
 
 (** [shuffle] is a randomized deck of 52 cards without duplicates. *)
 val shuffle : deck
 
-(** [draw_card n d] is a list of [n] cards that are not in [d]. 
+(** [shuffle d] is [d] shuffled into a random order. *)
+val shuffle : deck -> deck
+
+(** [draw_card n d] is a tuple of a list of [n] cards that are not in [d] and
+    the deck which remains after the cards are drawn. 
     Raises [EmptyDeck] if [n] is greater than the number of cards in [d]. *)
 val draw_card : int -> deck -> deck
