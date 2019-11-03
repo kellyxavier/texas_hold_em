@@ -17,8 +17,8 @@ module type PlayerSig = sig
   type b
   type player
   val create_player : string -> player
-  val hand : player -> card list
-  val change_hand : player -> card list -> player
+  val hand : player -> deck
+  val change_hand : player -> deck -> player
   val money : player -> int
   val change_money : player -> int -> player
   val status : player -> s
