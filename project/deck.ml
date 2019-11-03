@@ -12,9 +12,7 @@ type deck = card list
 
 let empty = []
 
-(** [standard_deck] is an ordered list of all 52 cards, going from clubs
-    between Ace and King, then Diamonds, then Hearts, and then Spades. *)
-let standard_deck = [
+let sorted_deck = [
   (Clubs, 1); (Clubs, 2); (Clubs, 3); (Clubs, 4); (Clubs, 5); (Clubs, 6);
   (Clubs, 7); (Clubs, 8); (Clubs, 9); (Clubs, 10); (Clubs, 11); (Clubs, 12);
   (Clubs, 13); (Diamonds, 1); (Diamonds, 2); (Diamonds, 3); (Diamonds, 4);
@@ -53,7 +51,7 @@ let rec shuffle_help n d lst =
   else lst
 
 let shuffle =
-  shuffle_help 52 standard_deck []
+  shuffle_help 52 sorted_deck []
 
 (** [draw_card_help n d lst] is a tail-recursive implementation of draw_card
     which returns [lst]. *)
@@ -66,3 +64,5 @@ let rec draw_card_help n d lst =
 
 let draw_card n d =
   draw_card_help n d []
+
+let to_list d = d
