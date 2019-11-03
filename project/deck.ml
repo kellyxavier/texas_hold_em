@@ -10,6 +10,8 @@ type card = (suit * int)
 
 type deck = card list
 
+let empty = []
+
 (** [standard_deck] is an ordered list of all 52 cards, going from clubs
     between Ace and King, then Diamonds, then Hearts, and then Spades. *)
 let standard_deck = [
@@ -24,6 +26,11 @@ let standard_deck = [
   (Spades, 6); (Spades, 7); (Spades, 8); (Spades, 9); (Spades, 10); 
   (Spades, 11); (Spades, 12); (Spades, 13)
   ]
+
+let is_empty d =
+  match d with
+  | [] -> true
+  | _ -> false
 
 (** [get_card n d r] returns a tuple of the [n]th card in [d] and [r] which are
     all cards in [d] preceeding the [n]th card. [r] might not be in same order 
@@ -47,8 +54,6 @@ let rec shuffle_help n d lst =
 
 let shuffle =
   shuffle_help 52 standard_deck []
-
-let shuffle d = failwith "Unimplemented"
 
 (** [draw_card_help n d lst] is a tail-recursive implementation of draw_card
     which returns [lst]. *)
