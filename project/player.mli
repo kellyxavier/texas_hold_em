@@ -7,7 +7,7 @@ open Deck
 (** The abstract type [status] represents the status of a player*)
 type s
 
-(** The abstract type [blnid] represents the blind of a player*)
+(** The abstract type [blind] represents the blind of a player*)
 type b
 
 (** The abstract type of values representing players. *)

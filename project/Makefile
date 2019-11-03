@@ -1,4 +1,4 @@
-MODULES=deck player tests test_d test_k test_v
+MODULES=deck player test_d test_k test_v
 OBJECTS=$(MODULES:=.cmo)
 MLS=$(MODULES:=.ml)
 MLIS=$(MODULES:=.mli)
