@@ -2,6 +2,9 @@ open OUnit2
 open Deck
 open Player
 
+open Test_d
+open Test_k
+open Test_v
 
 let p1 = create_player "kelly"
 
@@ -21,6 +24,13 @@ let suite =
   "test suite for A2"  >::: List.flatten [
     deck_tests;
     player_tests;
+  ]
+
+let tests_merged = 
+  List.flatten [
+    Test_d.tests;
+    Test_k.tests;
+    Test_v.tests
   ]
 
 let _ = run_test_tt_main suite
