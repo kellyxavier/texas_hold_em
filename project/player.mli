@@ -5,10 +5,10 @@ open Deck
 *)
 
 (** The abstract type [status] represents the status of a player*)
-type status
+type s
 
 (** The abstract type [blnid] represents the blind of a player*)
-type blind
+type b
 
 (** The abstract type of values representing players. *)
 type player
@@ -31,10 +31,10 @@ val money : player -> int
 val change_money : player -> int -> player
 
 (**[status p] is the current status of player [p]. *)
-val status : player -> status
+val status : player -> s
 
 (**[change_status p s] is the player [p] with status [s] *)
-val change_status : player -> status -> player
+val change_status : player -> s -> player
 
 
 
