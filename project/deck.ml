@@ -30,6 +30,9 @@ let is_empty d =
   | [] -> true
   | _ -> false
 
+let insert s r d =
+  (s, r) :: d
+
 (** [get_card n d r] returns a tuple of the [n]th card in [d] and [r] which are
     all cards in [d] preceeding the [n]th card. [r] might not be in same order 
     as [d] was.

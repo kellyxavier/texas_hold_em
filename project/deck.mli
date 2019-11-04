@@ -32,6 +32,11 @@ val shuffle : deck
 (** [is_empty d] is true if [d] is empty and false otherwise. *)
 val is_empty : deck -> bool
 
+(** [insert s r d] is a deck [d] with a card of suit [s] and rank [r] added
+    on the top of the deck. 
+    Requires: [r] is between 1 and 13, inclusive. *)
+val insert : suit -> int -> deck -> deck
+
 (** [draw_card n d] is a tuple of a list of [n] cards that are not in [d] and
     the deck which remains after the cards are drawn. 
     Raises [EmptyDeck] if [n] is greater than the number of cards in [d]. 
