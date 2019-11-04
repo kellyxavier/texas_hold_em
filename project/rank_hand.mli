@@ -1,4 +1,4 @@
-include Deck
+open Deck
 
 (** [hand_value hand] is the value of a given [hand] based on the cards
     contained, and standard poker scoring. Scores are int values ranging from

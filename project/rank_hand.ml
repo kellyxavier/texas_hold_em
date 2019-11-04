@@ -1,4 +1,4 @@
-include Deck
+open Deck
 
 (** Type of a sorted hand (used for finding value of a hand) *)
 type sorted_hand = {
@@ -64,7 +64,7 @@ let rec check_foak highcard = function
   | _ -> 0
 
 let hand_value hand =
-  let sort = sort_hand [] [] [] [] [] hand in
+  let sort = sort_hand [] [] [] [] [] (to_list hand) in
 
   (* Checking for flushes *)
   if check_flush sort.clubs > 0 then check_flush sort.clubs else
