@@ -23,6 +23,9 @@ type player =
 let create_player n = 
   {name = n; hand = empty; money = 5000; status = Active; blind = None}
 
+let name p =
+  p.name
+
 let hand p =
   p.hand
 
@@ -40,3 +43,9 @@ let status p =
 
 let change_status p st =
   {p with status = st}
+
+let blind p =
+  p.blind
+
+let change_blind p bl =
+  {p with blind = bl}

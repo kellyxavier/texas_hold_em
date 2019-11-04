@@ -17,12 +17,15 @@ module type PlayerSig = sig
   type b
   type player
   val create_player : string -> player
+  val name : player -> string
   val hand : player -> deck
   val change_hand : player -> deck -> player
   val money : player -> int
   val change_money : player -> int -> player
   val status : player -> s
   val change_status : player -> s -> player
+  val blind : player -> b
+  val change_blind : player -> b -> player
 end
 
 module PlayerCheck : PlayerSig = Player
