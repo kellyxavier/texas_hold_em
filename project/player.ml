@@ -1,7 +1,7 @@
 open Deck
 
 type s =
-  | Active
+  | Betting
   | AllIn
   | Folded
   | Out
@@ -21,7 +21,7 @@ type player =
   }
 
 let create_player n = 
-  {name = n; hand = empty; money = 5000; status = Active; blind = None}
+  {name = n; hand = empty; money = 5000; status = Betting; blind = None}
 
 let name p =
   p.name
