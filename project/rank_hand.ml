@@ -205,5 +205,9 @@ let hand_value hand =
                   let twopair = check_twopair sort.ranks in
                   if twopair > 0 then twopair else
 
-                    (* Get high card value *)
-                    get_highcard (List.sort compare (List.map dec sort.ranks))
+                    (* Checking for pairs *)
+                    let pair = check_pair false sort.ranks in
+                    if pair > 0 then pair else
+
+                      (* Get high card value *)
+                      get_highcard (List.sort compare (List.map dec sort.ranks))
