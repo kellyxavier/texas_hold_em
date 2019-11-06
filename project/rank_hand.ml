@@ -194,7 +194,8 @@ let hand_value hand =
           let foak = check_foak sort.ranks in
           if foak > 0 then foak else
 
-            (* Checking for Full House (and by extension finding out if trio exists) *)
+            (* Checking for Full House (and by extension finding out if 
+               trio exists) *)
             let fh = check_fh sort.ranks in
             if fh > 0 then fh else
               (* Rank of trio if trio exists (chance for optimization exists) *)
