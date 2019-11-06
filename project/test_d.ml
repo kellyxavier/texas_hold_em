@@ -90,6 +90,18 @@ let tests = [
   "flush beats high-valued hand" >:: (fun _ ->
       assert_equal true (hand_value hv_ace < hand_value flush_low));
 
+  "flush beats pair hand" >:: (fun _ ->
+      assert_equal true (hand_value pair_ace < hand_value flush_low));
+
+  "flush beats two pair hand" >:: (fun _ ->
+      assert_equal true (hand_value tpair_ace < hand_value flush_low));
+
+  "flush beats toak" >:: (fun _ ->
+      assert_equal true (hand_value toak_ace < hand_value flush_low));
+
+  "flush beats stra" >:: (fun _ ->
+      assert_equal true (hand_value stra_ace < hand_value flush_low));
+
   (*================ROYAL FLUSH TESTS================*)
 
   "royal flush beats all" >:: (fun _ ->
