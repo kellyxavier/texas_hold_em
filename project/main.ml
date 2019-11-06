@@ -1,7 +1,8 @@
 open Deck
 open Player
 open State
-(** [main ()] prompts for the game to play, then starts it. *)
+
+(** [create_player_list x acc] is the player list consisting of [x] players*)
 let rec create_player_list x acc =
   if x = 0 then List.rev acc
   else (print_endline ("Player "^(string_of_int((List.length acc)+1))^ ": enter your name");
@@ -9,14 +10,13 @@ let rec create_player_list x acc =
         match read_line () with
         | n -> create_player_list (x-1) (create_player n::acc))
 
-let rec print_list lst = match lst with
-  | [] -> ""
-  | h::t -> h^", "^print_list t
-
+(** [show_info_helper p] prints the private information of player [p]*)
 let show_info_helper p =
   let money = money p in let hand = hand p |> to_string in 
   print_endline ("You have " ^ (string_of_int money) ^ " dollars and your cards are\n" ^ hand)
 
+(** [show_info players] prints the private information of each players to 
+    the terminal, clearing the terminal between each player*)
 let rec show_info players =
   match players with
   | [] -> ()
@@ -29,12 +29,13 @@ let rec show_info players =
       begin match read_line () with 
         |_ -> ANSITerminal.erase Screen; show_info t end
 
-
+(** [start_game x] initializes a game with [x] players*)
 let start_game x =
   let player_list = create_player_list x [] in
   let st = new_round player_list in let active_players = active_players st in 
   show_info active_players; print_endline "That's all folks!"
 
+(** [main ()] prompts for the game to play, then starts it. *)
 let main () =
   (print_string
      "\n\nWelcome to Texas Hold 'Em.\n");
