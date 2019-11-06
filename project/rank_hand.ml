@@ -1,4 +1,4 @@
-include Deck
+open Deck
 
 let debug = true  
 
@@ -55,6 +55,7 @@ let check_royal_straight suit =
     | [] -> failwith "Should not happen"  
     | a :: b :: c :: d :: e :: t -> 
       if e = inc d && d = inc c && c = inc b && b = inc a then
+        if List.mem (inc e) suit' then helper (b :: c :: d :: e :: t) else
         if e = 1 then 173000 else (* Royal Flush [173000] *)
           e + 172431 (* Straight Flush [172436-172444] ; Actual (5-13)*)
       else helper (b :: c :: d :: e :: t)
@@ -85,19 +86,21 @@ let rec check_foak ranks =
     when [fh] is true and returns only an intermediate point value 
     Requires: [ranks] must be a list of all ranks in ASCENDING order *)
 let rec check_trio fh ranks =
-  match List.rev ranks with 
-  | a :: b :: c :: t -> 
-    if a = b && b = c then begin
-      if fh then (dec a) (* rank of trio part of full house *)
-      else let highcrds = begin
-          match List.filter (fun x -> x <> a) ranks with
-          | x :: y :: t -> 12 * (dec x) + (dec y)
-          | _ -> failwith "Shouldn't happen" end in
-        ((dec a) * 133) + highcrds + 168759 (* Trio [168930-170643] ; 
-                                               Actual (171-1884) *)
-    end
-    else check_trio fh (b :: c :: t)
-  | _ -> 0
+  let rec helper fh ranks' =
+    match ranks' with 
+    | a :: b :: c :: t -> 
+      if a = b && b = c then begin
+        if fh then (dec a) (* rank of trio part of full house *)
+        else let highcrds = begin
+            match (List.filter (fun x -> x <> a) ranks) with
+            | x :: y :: t -> 12 * (dec x) + (dec y)
+            | _ -> failwith "Shouldn't happen (trio)" end in
+          ((dec a) * 133) + highcrds + 168759 (* Trio [168930-170643] ; 
+                                                 Actual (171-1884) *)
+      end
+      else helper fh (b :: c :: t)
+    | _ -> 0 in
+  helper fh (List.rev ranks)
 
 (** [check_pair fh ranks] is the point value of a pair fiven the list of all
     ranks, however this becomes a helper function for full house when [fh] is 
@@ -110,9 +113,10 @@ let check_pair fh ranks =
       if a = b then begin
         if fh then dec a
         else let highcrds = begin
-            match List.filter (fun x -> x <> a) ranks with 
+            match List.filter (fun x -> x <> a) ranks |> List.map dec
+                  |> List.sort compare |> List.rev with 
             | x :: y :: z :: t -> 133 * (dec x) + 12 * (dec y) + (dec z)
-            | _ -> failwith "Shouldn't happen"  end in
+            | _ -> failwith "Shouldn't happen (pair)"  end in
           ((dec a) * 1464) + highcrds + 146104 (* Pair [149748-166875]
                                                   Actual (3644-20771)*)
       end
@@ -125,7 +129,7 @@ let check_pair fh ranks =
 let check_fh ranks = 
   let trio = check_trio true ranks in
   if trio <> 0 then 
-    let pair = check_pair true (List.filter (fun x -> x <> trio) ranks) in
+    let pair = check_pair true (List.filter (fun x -> dec x <> trio) ranks) in
     begin 
       if pair <> 0 then (12 * trio) + pair + 170669 (* FH [170683-172263] 
                                                        Actual (14-168)*)
@@ -140,7 +144,7 @@ let check_straight ranks =
     match ranks' with
     | a :: b :: c :: d :: e :: t -> 
       if e = inc d && d = inc c && c = inc b && b = inc a then
-        e + 170643 (* Straight [170648-170656] ; Actual (5-13) *)
+        (dec e) + 170643 (* Straight [170648-170656] ; Actual (5-13) *)
       else helper (b :: c :: d :: e :: t)
     | _ -> 0 in
   helper (append_first_four ranks)
@@ -156,7 +160,8 @@ let check_twopair ranks =
         let highcrd = List.fold_left max 0 
             (List.filter (fun x -> dec x <> pair1 && dec x <> pair2) ranks) in
         begin
-          if pair1 > pair2 then (pair1 * 133) + (pair2 * 12) + highcrd else
+          if pair1 > pair2 then (pair1 * 133) + (pair2 * 12) + highcrd + 166875
+          else
             (* TwoPair [167156-168759] ; Actual (281-1884)] *)
             (pair2 * 133) + (pair1 * 12) + highcrd + 166875
         end

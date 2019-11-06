@@ -52,7 +52,7 @@ let pair_ace =
 
 let pair_equal_low =
   pair_table
-  |> insert Hearts 3
+  |> insert Hearts 9
   |> insert Spades 2
 
 let pair_equal_high =

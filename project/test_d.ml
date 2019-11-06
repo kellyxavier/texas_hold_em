@@ -23,7 +23,7 @@ let tests = [
 
   "the same pair will go to the higher-valued hand" >:: (fun _ ->
       assert_equal true 
-      (hand_value pair_equal_low < hand_value pair_equal_high));
+        (hand_value pair_equal_low < hand_value pair_equal_high));
 
   "pair beats high-valued hand" >:: (fun _ ->
       assert_equal true (hand_value hv_ace < hand_value pair_low));
@@ -39,8 +39,8 @@ let tests = [
   "two pair beats high-valued hand" >:: (fun _ ->
       assert_equal true (hand_value hv_ace < hand_value tpair_low));
 
-(*  "two pair beats pair hand" >:: (fun _ ->
-      assert_equal true (hand_value pair_ace < hand_value tpair_low)); *)
+  (*  "two pair beats pair hand" >:: (fun _ ->
+        assert_equal true (hand_value pair_ace < hand_value tpair_low)); *)
 
   (*================THREE OF A KIND TESTS================*)
 
@@ -60,7 +60,7 @@ let tests = [
       assert_equal true (hand_value tpair_ace < hand_value toak_low));
 
   (*================STRAIGHT TESTS================*)
-  
+
   "a higher stra beats a lower stra" >:: (fun _ ->
       assert_equal true (hand_value stra_low < hand_value stra_high));
 
@@ -86,7 +86,7 @@ let tests = [
 
   "flush with an ace beats a flush with a lower high card" >:: (fun _ -> 
       assert_equal true (hand_value flush_high < hand_value flush_ace));
-  
+
   "flush beats high-valued hand" >:: (fun _ ->
       assert_equal true (hand_value hv_ace < hand_value flush_low));
 
@@ -109,7 +109,7 @@ let tests = [
 
   "full house with an ace beats all other full house" >:: (fun _ -> 
       assert_equal true (hand_value fh_high < hand_value fh_ace));
-  
+
   "full house beats high-valued hand" >:: (fun _ ->
       assert_equal true (hand_value hv_ace < hand_value fh_low));
 
@@ -135,7 +135,7 @@ let tests = [
 
   "foak with an ace beats all other foak" >:: (fun _ -> 
       assert_equal true (hand_value foak_high < hand_value foak_ace));
-  
+
   "foak beats high-valued hand" >:: (fun _ ->
       assert_equal true (hand_value hv_ace < hand_value foak_low));
 
@@ -161,7 +161,7 @@ let tests = [
 
   "sf with a high card beats a sf with a low" >:: (fun _ -> 
       assert_equal true (hand_value sf_low < hand_value sf_high));
-  
+
   "sf beats high-valued hand" >:: (fun _ ->
       assert_equal true (hand_value hv_ace < hand_value sf_low));
 
