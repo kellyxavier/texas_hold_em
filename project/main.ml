@@ -31,6 +31,9 @@ let rec show_info players =
       begin match read_line () with 
         |_ -> ANSITerminal.erase Screen; show_info t end
 
+(** [comparing_hands_demo u] prints 5 sets of 2 hands and determines which hand
+    wins each set. ie demos functionality of rank_hand. Solely uses for demo
+    purposes.*)
 let comparing_hands_demo unit =
   print_endline "Now, let's compare some hands to see who wins!";
   print_endline "Let's start off by comparing ";
