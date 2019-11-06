@@ -70,3 +70,22 @@ let draw_card n d =
   draw_card_help n d []
 
 let to_list d = d
+
+let print_suit s =
+  match s with
+  | Clubs -> "Clubs"
+  | Diamonds -> "Diamonds"
+  | Hearts -> "Hearts"
+  | Spades -> "Spades"
+
+let print_card c str =
+  match c with
+  | (s, r) -> str ^ (string_of_int r) ^ " of " ^ (print_suit s) ^ "\n"
+
+let rec to_string_helper d str =
+  match d with
+  | [] -> str
+  | h :: t -> to_string_helper t ((print_card h "") ^ str)
+
+let to_string d =
+  to_string_helper d ""

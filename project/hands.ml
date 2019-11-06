@@ -48,11 +48,11 @@ let pair_high =
 let pair_ace =
   pair_table
   |> insert Spades 1
-  |> insert Clubs 1
+  |> insert Clubs 9
 
 let pair_equal_low =
   pair_table
-  |> insert Hearts 6
+  |> insert Hearts 3
   |> insert Spades 2
 
 let pair_equal_high =

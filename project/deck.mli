@@ -1,4 +1,5 @@
 (** 
+
     Representation of a deck of cards.
 *)
 
@@ -45,3 +46,9 @@ val draw_card : int -> deck -> deck * deck
 
 (** [to_list d] is a list of deck. The cards are a tuple of a suit and rank. *)
 val to_list : deck -> (suit * int) list
+
+(** [to_string d] is a string of the deck in the following format:
+    [(Clubs, 1); (Diamonds 5)] ->
+    Ace of Clubs
+    5 of Diamonds *)
+val to_string : deck -> string
