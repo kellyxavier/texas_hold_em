@@ -71,6 +71,16 @@ let draw_card n d =
 
 let to_list d = d
 
+(** [print_rank r] is the string of the rank [r]. *)
+let print_rank r =
+  match r with
+  | 1 -> "Ace"
+  | 11 -> "Jack"
+  | 12 -> "Queen"
+  | 13 -> "King"
+  | n -> string_to_int n
+
+(** [print_suit s] is the string of the suit [s]. *)
 let print_suit s =
   match s with
   | Clubs -> "Clubs"
@@ -78,10 +88,13 @@ let print_suit s =
   | Hearts -> "Hearts"
   | Spades -> "Spades"
 
+(** [print_card c str] is the string [str] of card [c]. *)
 let print_card c str =
   match c with
-  | (s, r) -> str ^ (string_of_int r) ^ " of " ^ (print_suit s) ^ "\n"
+  | (s, r) -> str ^ (print_rank r) ^ " of " ^ (print_suit s) ^ "\n"
 
+(**[to_string_helper d str] is a tail-recursive implementation of to_string
+    which returns [str]. *)
 let rec to_string_helper d str =
   match d with
   | [] -> str
