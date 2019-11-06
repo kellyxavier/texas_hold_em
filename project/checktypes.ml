@@ -6,7 +6,7 @@ module type DeckSig = sig
   type card
   type deck
   val empty : deck
-  val shuffle : deck
+  val shuffle : unit -> deck
   val is_empty : deck -> bool
   val draw_card : int -> deck -> deck * deck
 end
@@ -44,3 +44,4 @@ module type StateSig = sig
 end
 
 module StateCheck : StateSig = State
+
