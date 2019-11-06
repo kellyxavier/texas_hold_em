@@ -229,58 +229,27 @@ let foak_ace =
   |> insert Diamonds 6
   |> insert Hearts 8
 
-(*================ROYAL FLUSH HANDS================*)
+(*================STRAIGHT FLUSH HANDS================*)
 
-let royal_flush =
+let sf_low =
   empty
-  |> insert Spades 8
-  |> insert Spades 9
-  |> insert Spades 10
-  |> insert Spades 11
-  |> insert Spades 12
-  |> insert Spades 13
-  |> insert Spades 1
-
-
-  |> insert Diamonds 13
-  |> insert Clubs 13
-
-let pair_ace =
-  pair_table
-  |> insert Spades 1
-  |> insert Clubs 9
-
-let pair_equal_low =
-  pair_table
-  |> insert Hearts 3
-  |> insert Spades 2
-
-let pair_equal_high =
-  pair_table
-  |> insert Spades 6
-  |> insert Hearts 13
-
-
-  |> insert Hearts 2
-
-let toak_high =
-  toak_table
+  |> insert Clubs 2
+  |> insert Clubs 3
+  |> insert Clubs 4
+  |> insert Clubs 5
+  |> insert Clubs 6
   |> insert Diamonds 8
-  |> insert Spades 8
+  |> insert Hearts 10
 
-let toak_ace =
-  toak_table
-  |> insert Spades 1
-  |> insert Hearts 1
-
-
-  |> insert Hearts 13
-  |> insert Hearts 11
-
-let flush_ace =
-  flush_table 
-  |> insert Hearts 1
-  |> insert Hearts 12
+let sf_high =
+  empty
+  |> insert Clubs 9
+  |> insert Clubs 10
+  |> insert Clubs 11
+  |> insert Clubs 12
+  |> insert Clubs 13
+  |> insert Diamonds 2
+  |> insert Hearts 5
 
 (*================ROYAL FLUSH HANDS================*)
 
