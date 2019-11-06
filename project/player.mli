@@ -6,7 +6,7 @@ open Deck
 
 (** The type [status] represents the status of a player*)
 type s =
-  | Active
+  | Betting
   | AllIn
   | Folded
   | Out
@@ -52,12 +52,3 @@ val blind : player -> b
 
 (**[change_status p bl] is the player [p] with blind [bl] *)
 val change_blind : player -> b -> player
-
-
-
-
-
-
-
-
-

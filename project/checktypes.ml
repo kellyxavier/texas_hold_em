@@ -1,4 +1,5 @@
 open Deck
+open Player
 
 module type DeckSig = sig 
   type suit
@@ -29,3 +30,17 @@ module type PlayerSig = sig
 end
 
 module PlayerCheck : PlayerSig = Player
+
+module type StateSig = sig 
+  exception InvalidPlayerList
+  type state
+  val new_round : player list -> state
+  val active_players : state -> player list
+  val remove_active_player : state -> player -> state
+  val table : state -> deck
+  val change_table : state -> deck -> state
+  val betting_pool : state -> int
+  val change_betting_pool : state -> int -> state
+end
+
+module StateCheck : StateSig = State

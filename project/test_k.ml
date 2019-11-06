@@ -1,6 +1,7 @@
 open OUnit2
 open Deck
 open Player
+open State
 
 
 let d = sorted_deck
@@ -17,37 +18,152 @@ let p9 = change_blind p1 Little
 
 let player_tests =
   [
-    "tests player's name is set correctly " >:: (fun _ -> 
+    "player's name is set correctly " >:: (fun _ -> 
         assert_equal "kelly" (p1 |> name));
-    "tests player's initial hand is empty " >:: (fun _ -> 
+    "player's initial hand is empty " >:: (fun _ -> 
         assert_equal empty (p1 |> hand));
-    "tests player's inital money is 5000 " >:: (fun _ -> 
+    "player's inital money is 5000 " >:: (fun _ -> 
         assert_equal 5000 (p1 |> money));
-    "tests player's initial status is Active " >:: (fun _ -> 
-        assert_equal Active (p1 |> status));
-    "tests player's initial blind is None " >:: (fun _ -> 
+    "player's initial status is Active " >:: (fun _ -> 
+        assert_equal Betting (p1 |> status));
+    "player's initial blind is None " >:: (fun _ -> 
         assert_equal None (p1 |> blind));
-    "tests player's updated hand is appropriate size " >:: (fun _ -> 
+    "player's updated hand is appropriate size " >:: (fun _ -> 
         assert_equal 2 (p2 |> hand |> to_list |> List.length));
-    "tests player's updated hand is expected cards" >:: (fun _ -> 
+    "player's updated hand is expected cards" >:: (fun _ -> 
         assert_equal [(Clubs, 2); (Clubs, 1)] (p2 |> hand |> to_list));
-    "tests player's money can be increased " >:: (fun _ -> 
+    "player's money can be increased " >:: (fun _ -> 
         assert_equal 5500 (p3 |> money));
-    "tests player's money can be decreased " >:: (fun _ -> 
+    "player's money can be decreased " >:: (fun _ -> 
         assert_equal 4500 (p4 |> money));
-    "tests player's status can be changed to AllIn " >:: (fun _ -> 
+    "player's status can be changed to AllIn " >:: (fun _ -> 
         assert_equal AllIn (p5 |> status));
-    "tests player's status can be changed to Folded " >:: (fun _ -> 
+    "player's status can be changed to Folded " >:: (fun _ -> 
         assert_equal Folded (p6 |> status));
-    "tests player's status can be changed to Out " >:: (fun _ -> 
+    "player's status can be changed to Out " >:: (fun _ -> 
         assert_equal Out (p7 |> status));
-    "tests player's blind can be changed to Big " >:: (fun _ -> 
+    "player's blind can be changed to Big " >:: (fun _ -> 
         assert_equal Big (p8 |> blind));
-    "tests player's blind can be changed to Little " >:: (fun _ -> 
+    "player's blind can be changed to Little " >:: (fun _ -> 
         assert_equal Little (p9 |> blind));
+  ]
+
+let player1 = create_player "valeria"
+let player2 = create_player "david"
+let player3 = create_player "bobby"
+let player4 = create_player "frank"
+let player5 = create_player "alice"
+let player6 = create_player "carl"
+let player7 = create_player "robin"
+let player8 = create_player "franny"
+let player9 = create_player "kathy"
+let player10 = create_player "rachel"
+let player11 = create_player "josh"
+let invalid_player_list_1 = [player1; player2; player3; player4; player5; 
+                             player6; player7; player8; player9; player10; 
+                             player11]
+let invalid_player_list_2 = [player1]
+let invalid_player_list_3 = []
+let valid_player_list_1 = [player1; player2; player3; player4]
+let valid_player_list_2 = [player1; player2; player3; player4; player5; 
+                           player6; player7; player8; player9; player10]
+let valid_player_list_3 = [player1; player2]
+let st = new_round valid_player_list_1
+let player_delete = List.nth (st |> active_players) 0
+let players_left = [List.nth (st |> active_players) 1; 
+                    List.nth (st |> active_players) 2;
+                    List.nth (st |> active_players) 3]
+let t = empty |> insert Clubs 2 |> insert Diamonds 7 |> insert Diamonds 6
+let state_tests =
+  [
+    "new_round with input of player list with length strictly 
+       greater than 10 should raise InvalidPlayerList" >::
+    (fun _ -> 
+       assert_raises (InvalidPlayerList) (fun () -> 
+           new_round invalid_player_list_1));
+    "new_round with input of player list with length strictly 
+       less than 2 should raise InvalidPlayerList" >::
+    (fun _ -> 
+       assert_raises (InvalidPlayerList) (fun () -> 
+           new_round invalid_player_list_2));
+    "new_round with input of empty player list should raise 
+       InvalidPlayerList" >::
+    (fun _ -> 
+       assert_raises (InvalidPlayerList) (fun () -> 
+           new_round invalid_player_list_3));
+    "new round with input of list of 4 players results in state with 
+    4 players" >:: (fun _ -> 
+        assert_equal 4 (valid_player_list_1 |> new_round |> active_players 
+                        |> List.length));
+    "new round with input of list of 10 players results in state with 
+    10 players (ie border case)" >:: (fun _ -> 
+        assert_equal 10 (valid_player_list_2 |> new_round |> active_players 
+                         |> List.length));
+    "new round with input of list of 2 players results in state with 
+    2 players (ie border case)" >:: (fun _ -> 
+        assert_equal 2 (valid_player_list_3 |> new_round |> active_players 
+                        |> List.length));
+    "new round with input list of 4 players assigns each player in resulting 
+    state 2 cards" >:: (fun _ -> 
+        assert_equal 4 (valid_player_list_1 |> new_round |> active_players |> 
+                        List.map (fun x -> to_list(hand x)) |> 
+                        List.filter (fun x -> List.length x = 2)|> List.length));
+    "new round with input list of 10 players assigns each player in resulting 
+    state 2 cards (ie border case)" >:: (fun _ -> 
+        assert_equal 10 (valid_player_list_2 |> new_round |> active_players |> 
+                         List.map (fun x -> to_list(hand x)) |> 
+                         List.filter (fun x -> List.length x = 2)|> List.length));
+    "new round with input list of 2 players assigns each player in resulting 
+    state 2 cards (ie border case)" >:: (fun _ -> 
+        assert_equal 2 (valid_player_list_3 |> new_round |> active_players |> 
+                        List.map (fun x -> to_list(hand x)) |> 
+                        List.filter (fun x -> List.length x = 2)|> List.length));
+    "new round with input list of 4 players assigns each player in resulting 
+    state 2 unique cards" >:: (fun _ -> 
+        assert_equal 8 (valid_player_list_1 |> new_round |> active_players |> 
+                        List.map (fun x -> to_list(hand x)) |> List.flatten |> 
+                        List.sort_uniq compare |> List.length));
+    "new round with input list of 10 players assigns each player in resulting 
+    state 2 unique cards (ie border case)" >:: (fun _ -> 
+        assert_equal 20 (valid_player_list_2 |> new_round |> active_players |> 
+                         List.map (fun x -> to_list(hand x)) |> List.flatten |> 
+                         List.sort_uniq compare |> List.length));
+    "new round with input list of 2 players assigns each player in resulting 
+    state 2 unique cards (ie border case)" >:: (fun _ -> 
+        assert_equal 4 (valid_player_list_3 |> new_round |> active_players |> 
+                        List.map (fun x -> to_list(hand x)) |> List.flatten |> 
+                        List.sort_uniq compare |> List.length));
+    "new round with input of list of 4 players results in state with 
+    empty table" >:: (fun _ -> 
+        assert_equal empty (valid_player_list_1 |> new_round |> table));
+    "new round with input of list of 10 players results in state with 
+    empty table (ie border case)" >:: (fun _ -> 
+        assert_equal empty (valid_player_list_2 |> new_round |> table));
+    "new round with input of list of 2 players results in state with 
+    empty table (ie border case)" >:: (fun _ -> 
+        assert_equal empty (valid_player_list_3 |> new_round |> table));
+    "new round with input of list of 4 players results in state with 
+    betting pool of 0" >:: (fun _ -> 
+        assert_equal 0 (valid_player_list_1 |> new_round |> betting_pool));
+    "new round with input of list of 10 players results in state with 
+    betting pool of 0 (ie border case)" >:: (fun _ -> 
+        assert_equal 0 (valid_player_list_2 |> new_round |> betting_pool));
+    "new round with input of list of 2 players results in state with 
+    betting pool of 0 (ie border case)" >:: (fun _ -> 
+        assert_equal 0 (valid_player_list_3 |> new_round |> betting_pool));
+    "remove_player results in state with active players without player that
+    was removed" 
+    >:: (fun _ -> 
+        assert_equal players_left (remove_active_player st player_delete|> 
+                                   active_players));
+    "state's table can be updated" >:: (fun _ -> 
+        assert_equal t (change_table st t |> table));
+    "state's betting pool can be updated" >:: (fun _ -> 
+        assert_equal 30 (change_betting_pool st 30 |> betting_pool));
   ]
 
 let tests =
   List.flatten [
     player_tests;
+    state_tests
   ]

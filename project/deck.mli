@@ -27,7 +27,7 @@ val empty : deck
 val sorted_deck : deck
 
 (** [shuffle] is a randomized deck of 52 cards without duplicates. *)
-val shuffle : deck
+val shuffle : unit -> deck
 
 (** [is_empty d] is true if [d] is empty and false otherwise. *)
 val is_empty : deck -> bool

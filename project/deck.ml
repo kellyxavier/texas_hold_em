@@ -53,7 +53,7 @@ let rec shuffle_help n d lst =
     | (c, r) -> shuffle_help (n - 1) r (c :: lst)
   else lst
 
-let shuffle =
+let shuffle u =
   shuffle_help 52 sorted_deck []
 
 (** [draw_card_help n d lst] is a tail-recursive implementation of draw_card
