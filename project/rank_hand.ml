@@ -103,20 +103,22 @@ let rec check_trio fh ranks =
     ranks, however this becomes a helper function for full house when [fh] is 
     true and returns only an intermediate point value
     Requires: [ranks] must be a list of all ranks in ASCENDING order *)
-let rec check_pair fh ranks = 
-  match List.rev ranks with
-  | a :: b :: t ->  
-    if a = b then begin
-      if fh then dec a
-      else let highcrds = begin
-          match List.filter (fun x -> x <> a) ranks with 
-          | x :: y :: z :: t -> 133 * (dec x) + 12 * (dec y) + (dec z)
-          | _ -> failwith "Shouldn't happen" end in
-        ((dec a) * 1464) + highcrds + 146104 (* Pair [149748-166875]
-                                                Actual (3644-20771)*)
-    end
-    else check_pair fh (b :: t)
-  | _ -> 0
+let check_pair fh ranks = 
+  let rec helper fh ranks' = 
+    match ranks' with
+    | a :: b :: t ->  
+      if a = b then begin
+        if fh then dec a
+        else let highcrds = begin
+            match List.filter (fun x -> x <> a) ranks with 
+            | x :: y :: z :: t -> 133 * (dec x) + 12 * (dec y) + (dec z)
+            | _ -> failwith "Shouldn't happen"  end in
+          ((dec a) * 1464) + highcrds + 146104 (* Pair [149748-166875]
+                                                  Actual (3644-20771)*)
+      end
+      else helper fh (b :: t)
+    | _ -> 0 in
+  helper fh (List.rev ranks)
 
 (** [check_fh ranks] is the point value of a full house given the list of 
     all ranks. If this is 0 then there is no full house. *)
@@ -149,12 +151,10 @@ let check_twopair ranks =
   let pair1 = check_pair true ranks in
   if pair1 > 0 then 
     let pair2 = check_pair true (List.filter (fun x -> dec x <> pair1) ranks) in
-    print_endline ("Found one pair: " ^ string_of_int pair1);
     begin
       if pair2 > 0 then 
         let highcrd = List.fold_left max 0 
             (List.filter (fun x -> dec x <> pair1 && dec x <> pair2) ranks) in
-        print_endline ("Found two pair: " ^ (string_of_int pair1) ^ " " ^(string_of_int pair2));
         begin
           if pair1 > pair2 then (pair1 * 133) + (pair2 * 12) + highcrd else
             (* TwoPair [167156-168759] ; Actual (281-1884)] *)
