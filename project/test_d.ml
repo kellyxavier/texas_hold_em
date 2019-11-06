@@ -102,6 +102,61 @@ let tests = [
   "flush beats stra" >:: (fun _ ->
       assert_equal true (hand_value stra_ace < hand_value flush_low));
 
+  (*================FULL HOUSE TESTS================*)
+
+  "full house with a high card beats a full house with a low" >:: (fun _ -> 
+      assert_equal true (hand_value fh_low < hand_value fh_high));
+
+  "full house with an ace beats all other full house" >:: (fun _ -> 
+      assert_equal true (hand_value fh_high < hand_value fh_ace));
+  
+  "full house beats high-valued hand" >:: (fun _ ->
+      assert_equal true (hand_value hv_ace < hand_value fh_low));
+
+  "full house beats pair hand" >:: (fun _ ->
+      assert_equal true (hand_value pair_ace < hand_value fh_low));
+
+  "full house beats two pair hand" >:: (fun _ ->
+      assert_equal true (hand_value tpair_ace < hand_value fh_low));
+
+  "full house beats toak" >:: (fun _ ->
+      assert_equal true (hand_value toak_ace < hand_value fh_low));
+
+  "full house beats stra" >:: (fun _ ->
+      assert_equal true (hand_value stra_ace < hand_value fh_low));
+
+  "full house beats flush" >:: (fun _ ->
+      assert_equal true (hand_value flush_ace < hand_value fh_low));
+
+  (*================FOUR OF A KIND TESTS================*)
+
+  "foak with a high card beats a foak with a low" >:: (fun _ -> 
+      assert_equal true (hand_value foak_low < hand_value foak_high));
+
+  "foak with an ace beats all other foak" >:: (fun _ -> 
+      assert_equal true (hand_value foak_high < hand_value foak_ace));
+  
+  "foak beats high-valued hand" >:: (fun _ ->
+      assert_equal true (hand_value hv_ace < hand_value foak_low));
+
+  "foak beats pair hand" >:: (fun _ ->
+      assert_equal true (hand_value pair_ace < hand_value foak_low));
+
+  "foak beats two pair hand" >:: (fun _ ->
+      assert_equal true (hand_value tpair_ace < hand_value foak_low));
+
+  "foak beats toak" >:: (fun _ ->
+      assert_equal true (hand_value toak_ace < hand_value foak_low));
+
+  "foak beats stra" >:: (fun _ ->
+      assert_equal true (hand_value stra_ace < hand_value foak_low));
+
+  "foak beats flush" >:: (fun _ ->
+      assert_equal true (hand_value flush_ace < hand_value foak_low));
+
+  "foak beats full house" >:: (fun _ ->
+      assert_equal true (hand_value fh_ace < hand_value foak_low));
+
   (*================ROYAL FLUSH TESTS================*)
 
   "royal flush beats all" >:: (fun _ ->
