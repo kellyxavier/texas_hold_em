@@ -18,7 +18,7 @@ let rec deal_players d lst acc=
 
 let new_round lst=
   if List.length lst < 2  || List.length lst > 10 then raise InvalidPlayerList 
-  else {active_players = deal_players shuffle lst []; table = empty; 
+  else {active_players = deal_players (shuffle ()) lst []; table = empty; 
         betting_pool = 0}
 
 let active_players st =
