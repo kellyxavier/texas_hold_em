@@ -60,9 +60,15 @@ let pair_equal_high =
   |> insert Spades 6
   |> insert Hearts 13
 
-(*================TWO PAIR TESTS================*)
+(*================TWO PAIR HANDS================*)
 
-let tpair_table = pair_table
+let tpair_table = 
+  empty 
+  |> insert Clubs 2
+  |> insert Clubs 3
+  |> insert Diamonds 1
+  |> insert Spades 6
+  |> insert Hearts 8
 
 let tpair_low =
   tpair_table
@@ -78,6 +84,61 @@ let tpair_ace =
   tpair_table
   |> insert Diamonds 1
   |> insert Spades 2
+
+(*================THREE OF A KIND HANDS================*)
+
+let toak_table =
+  empty 
+  |> insert Clubs 2
+  |> insert Clubs 3
+  |> insert Diamonds 1
+  |> insert Spades 6
+  |> insert Hearts 8
+
+let toak_low =
+  toak_table
+  |> insert Diamonds 2
+  |> insert Hearts 2
+
+let toak_high =
+  toak_table
+  |> insert Diamonds 8
+  |> insert Spades 8
+
+let toak_ace =
+  toak_table
+  |> insert Spades 1
+  |> insert Hearts 1
+
+(*================STRAIGHT HANDS================*)
+
+let stra_table =
+  empty 
+  |> insert Clubs 2
+  |> insert Clubs 3
+  |> insert Diamonds 10
+  |> insert Spades 6
+  |> insert Hearts 8
+
+let stra_low =
+  stra_table
+  |> insert Diamonds 4
+  |> insert Hearts 5
+
+let stra_high =
+  stra_table
+  |> insert Hearts 7
+  |> insert Diamonds 9
+
+let stra_ace =
+  empty
+  |> insert Clubs 1
+  |> insert Diamonds 2
+  |> insert Clubs 3
+  |> insert Hearts 11
+  |> insert Spades 8
+  |> insert Diamonds 4
+  |> insert Spades 5
 
 (*================FLUSH HANDS================*)
 

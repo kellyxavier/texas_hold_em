@@ -78,7 +78,7 @@ let print_rank r =
   | 11 -> "Jack"
   | 12 -> "Queen"
   | 13 -> "King"
-  | n -> string_to_int n
+  | n -> string_of_int n
 
 (** [print_suit s] is the string of the suit [s]. *)
 let print_suit s =
