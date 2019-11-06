@@ -3,7 +3,7 @@ open Rank_hand
 open Hands
 
 let tests = [
-
+  (* 
   (*================HIGH VALUE TESTS================*)
 
   "a higher-card hand beats a lower one" >:: (fun _ -> 
@@ -48,13 +48,15 @@ let tests = [
 
   "flush with an ace beats a flush with a lower high card" >:: (fun _ -> 
       assert_equal true (hand_value flush_high < hand_value flush_ace));
-  
+
   "flush beats high-valued hand" >:: (fun _ ->
       assert_equal true (hand_value hv_ace < hand_value flush_low));
 
   (*================ROYAL FLUSH TESTS================*)
 
   "royal flush beats all" >:: (fun _ ->
-      assert_equal true (hand_value flush_ace < hand_value royal_flush));
+      assert_equal true (hand_value flush_ace < hand_value royal_flush)); *)
 
+  "two pair beats pair hand" >:: (fun _ ->
+      assert_equal true (hand_value pair_ace < hand_value tpair_low));
 ]

@@ -148,11 +148,13 @@ let check_straight ranks =
 let check_twopair ranks =
   let pair1 = check_pair true ranks in
   if pair1 > 0 then 
-    let pair2 = check_pair true (List.filter (fun x -> x <> pair1) ranks) in
+    let pair2 = check_pair true (List.filter (fun x -> dec x <> pair1) ranks) in
+    print_endline ("Found one pair: " ^ string_of_int pair1);
     begin
       if pair2 > 0 then 
         let highcrd = List.fold_left max 0 
-            (List.filter (fun x -> x <> pair1 && x <> pair2) ranks) in
+            (List.filter (fun x -> dec x <> pair1 && dec x <> pair2) ranks) in
+        print_endline ("Found two pair: " ^ (string_of_int pair1) ^ " " ^(string_of_int pair2));
         begin
           if pair1 > pair2 then (pair1 * 133) + (pair2 * 12) + highcrd else
             (* TwoPair [167156-168759] ; Actual (281-1884)] *)
