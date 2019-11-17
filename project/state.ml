@@ -99,10 +99,28 @@ let fold st p =
   remove_active_player st p
 
 let check st p =
-  if st.current_bet = 0 then st else raise InvalidBet
+  if st.current_bet = money_betted p then st else raise InvalidBet
 
 let call st p =
   let diff = (st.current_bet - money_betted p) 
   in let active_players' = update_player_money st.active_players p (-diff) []
   in {st with active_players = active_players'; 
               betting_pool = st.betting_pool + diff}
+
+let all_in st p =
+  if max_bet st >= money p + money_betted p
+  then 
+    let m = money p in
+    let active_players' = update_player_money st.active_players p (-m) []
+    in  {st with active_players = active_players';
+                 betting_pool = st.betting_pool + m}
+  else raise InvalidBet
+
+let raise r st p =
+  let m = (st.current_bet - money_betted p + r) in
+  if max_bet st >=  st.current_bet + r
+  then 
+    let active_players' = update_player_money st.active_players p (-m) []
+    in  {st with active_players = active_players';
+                 betting_pool = st.betting_pool + m}
+  else raise InvalidBet

@@ -57,6 +57,8 @@ module type StateSig = sig
   val fold : state -> player -> state
   val check : state -> player -> state
   val call : state -> player -> state
+  val all_in : state -> player -> state
+  val raise : int -> state -> player -> state
 end
 
 module StateCheck : StateSig = State

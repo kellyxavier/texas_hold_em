@@ -80,11 +80,26 @@ val fold : state -> player -> state
    Raises: [InvalidCheck] if not. *)
 val check : state -> player -> state
 
-
 (**[call st p] is state [st] with active players changed to reflect the change 
    in player [p]'s money (ie decreases the player's money by the difference 
    between the amount of money the player has previously betted and the
    current bet in state [st]) and the betting pool increased by the difference 
    between the amount of money the player has previously betted and the
-   current bet in state [st] *)
+   current bet in state [st]. *)
 val call : state -> player -> state
+
+(**[all_in st p] is state [st] with active players changed to reflect the change 
+   in player [p]'s money (ie sets [p]'s money to 0) and the betting pool 
+   increased by the total amount of money [p] previously had. 
+   Raises: [InvalidBet] is [p]'s money and money betted is greated than the
+      maximum bet in [st]. *)
+val all_in : state -> player -> state
+
+(**[raise r st p] is state [st] with active players changed to reflect the 
+   change in player [p]'s money (ie decreases the player's money by the 
+   difference between the amount of money the player has previously betted and 
+   the current bet in state [st], plus [r]) and the betting pool increased by 
+   same difference plus r.
+   Raises [InvalidBet] if the current bet in [st] + [r] is greater than the 
+   max bet in [st]. *)
+val raise : int -> state -> player -> state
