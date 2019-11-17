@@ -12,10 +12,9 @@ type command =
   | Quit
   | Fold
   | Call
-  | Check 
-  | Bet of amount
-  | Raise of amount
+  | Check
   | Allin
+  | Raise of amount
 
 (** Raised when an empty command is parsed. *)
 exception Empty

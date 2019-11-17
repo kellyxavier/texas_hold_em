@@ -8,7 +8,14 @@ open Player
    including the game's current list of players, the deck on the table,
    the betting pool, and functions that cause the state to change.
 *)
+
+(** [InvalidPlayerList] raises when the client tries to start a game with 
+      less than 2 or more than 10 players. *)
 exception InvalidPlayerList
+
+(** [InvalidBet] raises when a player tries to make an illegal betting action *)
+exception InvalidBet
+
 (** The abstract type of values representing the game state. *)
 type state 
 
@@ -39,3 +46,45 @@ val betting_pool : state -> int
 (**[change_betting_pool st m] is state [st] with [m] added to the betting_pool 
    currently in state [st]. *)
 val change_betting_pool : state -> int -> state
+
+(** [current_bet st] is the current bet in state [st]. *)
+val current_bet : state -> int
+
+(**[change_current_bet st m] is state [st] with [m] added to the current_bet 
+   currently in state [st]. *)
+val change_current_bet : state -> int -> state
+
+(** [max_bet st] is the current max bet in state [st]. *)
+val max_bet : state -> int
+
+(**[change_max_bet st m] is state [st] with max_bet set to [m]*)
+val change_max_bet : state -> int -> state
+
+(** [find_max_bet st] is the amout of money the player with least amount of 
+    money currently has.*)
+val find_max_bet : state -> int
+
+(** [update_player_money lst p m acc] is the list of players [lst] with the 
+    money of player [p] increased by [m]. *)
+val update_player_money : player list -> player -> int -> player list 
+  -> player list
+
+(**[quit st p] is state [st] with active_players without player [p]. *)
+val quit : state -> player -> state
+
+(**[fold st p] is state [st] with active_players without player [p]. *)
+val fold : state -> player -> state
+
+(**[check st p] is state [st] if the player [p]'s money betted is the same as 
+   the current bet.
+   Raises: [InvalidCheck] if not. *)
+val check : state -> player -> state
+
+
+(**[call st p] is state [st] with active players changed to reflect the change 
+   in player [p]'s money (ie decreases the player's money by the difference 
+   between the amount of money the player has previously betted and the
+   current bet in state [st]) and the betting pool increased by the difference 
+   between the amount of money the player has previously betted and the
+   current bet in state [st] *)
+val call : state -> player -> state
