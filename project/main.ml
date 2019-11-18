@@ -90,7 +90,7 @@ Note there may only be 2-10 players in your game";
   match int_of_string(read_line ()) with
   | exception e -> print_endline "You must enter a number. 
   Start the game engine again to play"
-  | x -> if (x > 10 || x <2 ) then print_endline "You must enter a number between 1 and 10.
+  | x -> if (x > 10 || x <2 ) then print_endline "You must enter a number between 2 and 10.
   Start the game engine again to play" else start_game x
 
 let () = main ()

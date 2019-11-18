@@ -3,7 +3,6 @@ open Player
 
 (** 
    Representation of dynamic game state.
-
    This module represents the state of a game as it is being played,
    including the game's current list of players, the deck on the table,
    the betting pool, and functions that cause the state to change.
@@ -25,6 +24,9 @@ type state
     Requires: length of [lst] is greater than or equal to 2 and
     less than or equal to 10*)
 val new_round : player list -> state
+
+(** [all_players st] is the list of all players in state [st]. *)
+val all_players : state -> player list
 
 (** [active_players st] is the list of players that are still playing 
     (ie not out or folded) in state [st]. *)

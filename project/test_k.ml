@@ -74,6 +74,24 @@ let players_left = [List.nth (st |> active_players) 1;
                     List.nth (st |> active_players) 2;
                     List.nth (st |> active_players) 3]
 let t = empty |> insert Clubs 2 |> insert Diamonds 7 |> insert Diamonds 6
+
+let p1 = create_player "A"
+let p2 = create_player "B"
+let p3 = create_player "C"
+let p_lst1 = [p1; p2; p3]
+let test_state1 = new_round p_lst1
+let test_state2 = test_state1
+
+let rec get_money p lst =
+  match lst with
+  | [] -> failwith "empty list"
+  | h :: t -> if name h = name p then money h else get_money p t
+
+let rec player_names  acc lst=
+  match lst with 
+  | [] -> List.rev acc
+  | h :: t -> player_names (name h :: acc) t
+
 let state_tests =
   [
     "new_round with input of player list with length strictly 

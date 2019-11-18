@@ -24,7 +24,7 @@ let rec deal_players d lst acc=
 let new_round lst=
   if List.length lst < 2  || List.length lst > 10 then raise InvalidPlayerList 
   else {all_players = lst; active_players = deal_players (shuffle ()) lst []; 
-        table = empty; betting_pool = 0; current_bet = 0; max_bet = 0}
+        table = empty; betting_pool = 0; current_bet = 0; max_bet = 5000}
 
 let all_players st = 
   st.all_players
@@ -38,7 +38,7 @@ let active_players st =
 let rec remove_player lst p acc =
   match lst with
   | [] -> List.rev acc
-  | h::t -> if p = h then remove_player t p acc 
+  | h::t -> if name p = name h then remove_player t p acc 
     else remove_player t p (h::acc)
 
 let remove_active_player st p =
@@ -87,9 +87,9 @@ let find_max_bet st =
 let rec update_player_money lst p m acc =
   match lst with 
   | [] -> List.rev acc
-  | h :: t -> if p = h then let updated_player = change_money p m 
+  | h :: t -> if name p = name h then let updated_player = change_money p m 
       in update_player_money t p m (updated_player :: acc)
-    else update_player_money lst p m (h :: acc)
+    else update_player_money t p m (h :: acc)
 
 let quit st p =
   let s' = remove_active_player st p in 
@@ -111,9 +111,9 @@ let all_in st p =
   if max_bet st >= money p + money_betted p
   then 
     let m = money p in
-    let active_players' = update_player_money st.active_players p (-m) []
-    in  {st with active_players = active_players';
-                 betting_pool = st.betting_pool + m}
+    let active_players' = update_player_money st.active_players p (-m) [] in  
+    {st with active_players = active_players';
+             betting_pool = st.betting_pool + m}
   else raise InvalidBet
 
 let raise r st p =
