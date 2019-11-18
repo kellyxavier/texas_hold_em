@@ -38,7 +38,7 @@ let money p =
   p.money
 
 let change_money p m =
-  {p with money = p.money + m}
+  {p with money = p.money + m; money_betted = p.money_betted - m}
 
 let status p =
   p.status
