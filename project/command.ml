@@ -25,6 +25,7 @@ let parse str =
     else if phrase = "allin" then Allin
     else if List.length trimmed_word_list = 2 &&  command = "raise"
     then match int_of_string (List.nth trimmed_word_list 1) with
+      | 0 -> Call
       | i -> Raise i 
       | exception _ -> raise Malformed
     else raise Malformed

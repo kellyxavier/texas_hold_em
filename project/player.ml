@@ -8,7 +8,7 @@ type s =
 
 type b =
   | Big
-  | Little
+  | Small
   | None
 
 type player =

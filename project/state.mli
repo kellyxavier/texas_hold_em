@@ -28,9 +28,16 @@ val new_round : player list -> state
 (** [all_players st] is the list of all players in state [st]. *)
 val all_players : state -> player list
 
+(** [change_all_players st lst] is the [st] with all players set to [lst].*)
+val change_all_players : state -> player list -> state
+
 (** [active_players st] is the list of players that are still playing 
     (ie not out or folded) in state [st]. *)
 val active_players : state -> player list
+
+(** [change_active_players st lst] is the [st] with active players set to 
+    [lst].*)
+val change_active_players : state -> player list -> state
 
 (**[remove_active_player st p] is state [st] with active_players without
    player [p]. *)
@@ -65,6 +72,10 @@ val change_max_bet : state -> int -> state
 (** [find_max_bet st] is the amout of money the player with least amount of 
     money currently has.*)
 val find_max_bet : state -> int
+
+val rem_deck : state -> deck
+
+val change_rem_deck : deck -> state -> state
 
 (** [update_player_money lst p m acc] is the list of players [lst] with the 
     money of player [p] increased by [m]. *)

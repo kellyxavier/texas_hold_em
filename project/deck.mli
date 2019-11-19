@@ -44,6 +44,9 @@ val insert : suit -> int -> deck -> deck
     Raises [InvalidArgument] if [n] is less than 0. *)
 val draw_card : int -> deck -> deck * deck
 
+(** [add d1 d2] is [d1] placed on top of [d2]. *)
+val add : deck -> deck -> deck
+
 (** [to_list d] is a list of deck. The cards are a tuple of a suit and rank. *)
 val to_list : deck -> (suit * int) list
 

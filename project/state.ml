@@ -11,20 +11,24 @@ type state =
     table : deck;
     betting_pool : int;
     current_bet : int;
-    max_bet : int
+    max_bet : int;
+    rem_deck : deck
   }
 
 let rec deal_players d lst acc=
   match lst with 
-  | [] -> List.rev acc
+  | [] -> (List.rev acc, d)
   | h::t -> let cards_deck_pair = draw_card 2 d in 
     let cards = fst cards_deck_pair in let rem_deck = snd cards_deck_pair in 
     deal_players rem_deck t (change_hand h cards :: acc)
 
 let new_round lst=
   if List.length lst < 2  || List.length lst > 10 then raise InvalidPlayerList 
-  else {all_players = lst; active_players = deal_players (shuffle ()) lst []; 
-        table = empty; betting_pool = 0; current_bet = 0; max_bet = 5000}
+  else 
+    let deal = deal_players (shuffle ()) lst [] in
+    {all_players = lst; active_players = fst deal; 
+     table = empty; betting_pool = 0; current_bet = 0; max_bet = 5000;
+     rem_deck = snd deal}
 
 let all_players st = 
   st.all_players
@@ -34,6 +38,9 @@ let change_all_players st lst =
 
 let active_players st =
   st.active_players
+
+let change_active_players st lst =
+  {st with active_players = lst}
 
 let rec remove_player lst p acc =
   match lst with
@@ -55,7 +62,7 @@ let table st =
 
 let change_table st d =
   (* {st with table = add_to_table_helper st d st.table} *)
-  {st with table = d}
+  {st with table = (add d st.table)}
 
 let betting_pool st =
   st.betting_pool
@@ -83,6 +90,12 @@ let rec find_max_bet_aux lst mb =
 
 let find_max_bet st =
   find_max_bet_aux st.active_players 0
+
+let rem_deck st =
+  st.rem_deck
+
+let change_rem_deck rd st =
+  {st with rem_deck = rd}
 
 let rec update_player_money lst p m acc =
   match lst with 

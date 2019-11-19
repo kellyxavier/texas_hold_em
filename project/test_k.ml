@@ -14,7 +14,7 @@ let p5 = change_status p1 AllIn
 let p6 = change_status p1 Folded
 let p7 = change_status p1 Out
 let p8 = change_blind p1 Big
-let p9 = change_blind p1 Little
+let p9 = change_blind p1 Small
 
 let player_tests =
   [
@@ -45,7 +45,7 @@ let player_tests =
     "player's blind can be changed to Big " >:: (fun _ -> 
         assert_equal Big (p8 |> blind));
     "player's blind can be changed to Little " >:: (fun _ -> 
-        assert_equal Little (p9 |> blind));
+        assert_equal Small (p9 |> blind));
   ]
 
 let player1 = create_player "valeria"

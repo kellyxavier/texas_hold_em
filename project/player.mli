@@ -14,7 +14,7 @@ type s =
 (** The type [blind] represents the blind of a player*)
 type b =
   | Big
-  | Little
+  | Small
   | None
 
 (** The abstract type of values representing players. *)

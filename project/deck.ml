@@ -70,6 +70,8 @@ let rec draw_card_help n d lst =
 let draw_card n d =
   draw_card_help n d []
 
+let add d1 d2 = d1 @ d2
+
 let to_list d = d
 
 (** [print_rank r] is the string of the rank [r]. *)
