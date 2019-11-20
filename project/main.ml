@@ -11,7 +11,18 @@ let rec create_player_list x acc =
   else (print_endline ("Player "^(string_of_int((List.length acc)+1))^ ": enter your name\nNote: your name must be unique.");
         print_string "> ";
         match read_line () with
-        | n -> create_player_list (x-1) (create_player n::acc))
+        | "" ->
+          begin 
+            print_endline "You cannot have an empty name. Please try again.";
+            create_player_list x acc
+          end
+        | n -> 
+          if List.mem n ((List.map (fun p -> name p)) acc) then 
+            begin
+              print_endline "You cannot choose a name that someone has already selected. Please try again";
+              create_player_list x acc
+            end
+          else create_player_list (x-1) (create_player n::acc))
 
 (** [more_than_one_player st] is true if there's more than one active player
     in the game and false otherwise. *)
@@ -205,6 +216,7 @@ let rec everyone_gets_a_turn players st =
         match read_line () with 
         | _ -> 
           show_info h st; 
+          print_endline ("You must bet at least $" ^ string_of_int (current_bet st - money_betted h) ^ " to stay in the game.");
           print_endline ("What would you like to do?");
           print_string "> ";
           begin 
@@ -230,6 +242,7 @@ and continued_betting players st =
         match read_line () with 
         | _ -> 
           show_info h st; 
+          print_endline ("You must bet at least $" ^ string_of_int (current_bet st - money_betted h) ^ " to stay in the game.");
           print_endline ("What would you like to do?");
           print_string "> ";
           begin 
