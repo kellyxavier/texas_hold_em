@@ -163,7 +163,7 @@ let all_in st p =
     let active_players' = update_player_money st.active_players p (-m) [] in  
     {st with active_players = active_players';
              betting_pool = st.betting_pool + m; 
-             current_bet = st.current_bet + (st.current_bet - m)}
+             current_bet = st.current_bet + (m - st.current_bet - money_betted p)}
   else raise InvalidBet
 
 let raise r st p =

@@ -97,9 +97,9 @@ let take_blind_money st =
 
 let display_blind_money p =
   match blind p with
-  | Small -> print_endline (name p ^ ", you are small blind, so you automatically bet 25.
+  | Small -> print_endline ("\n\n"^name p ^ ", you are small blind, so you automatically bet 25.
 You now only have $" ^ string_of_int (money p) ^ " left.")
-  | Big -> print_endline (name p ^ ", you are big blind, so you automatically bet 50.
+  | Big -> print_endline ("\n\n"^name p ^ ", you are big blind, so you automatically bet 50.
 You now only have $" ^ string_of_int (money p) ^ " left.")
   | None -> failwith "not a blind" 
 
@@ -211,7 +211,7 @@ let rec everyone_gets_a_turn players st =
     begin
       match players with
       | [] -> st
-      | h::t -> print_endline ((name h)^", press enter when you are alone");
+      | h::t -> print_endline ("\n\n"^(name h)^", press enter when you are alone");
         print_string "> ";
         match read_line () with 
         | _ -> 
@@ -237,7 +237,7 @@ and continued_betting players st =
       match players with
       | [] -> failwith "betting without players"
       | h :: [] -> st
-      | h::t -> print_endline ((name h)^", press enter when you are alone");
+      | h::t -> print_endline ("\n\n"^(name h)^", press enter when you are alone");
         print_string "> ";
         match read_line () with 
         | _ -> 
@@ -303,10 +303,18 @@ let rec show_down_aux st players high acc =
     else if h_value = high then show_down_aux st t high (h :: acc)
     else show_down_aux st t high (acc)
 
-let rec names_to_string players acc =
+let rec names_to_string more_than_one players acc =
   match players with 
   | [] -> acc
-  | h :: t -> names_to_string t (acc ^ "\n" ^ name h)
+  | h1 :: h2 :: [] -> names_to_string more_than_one (h2 :: []) (acc ^ name h1 ^ " ")
+  | h1 :: h2 :: t -> names_to_string more_than_one (h2 :: t) (acc ^ name h1 ^ ", ")
+  | h :: [] -> 
+    begin
+      if more_than_one 
+      then names_to_string more_than_one ([]) (acc ^ "and " ^ name h) 
+      else names_to_string more_than_one ([]) (name h)
+    end
+(* | h :: t -> names_to_string t (acc ^ "," ^ name h) *)
 
 let rec split_pot st aps winners won_money acc =
   match aps with
@@ -316,9 +324,7 @@ let rec split_pot st aps winners won_money acc =
     else split_pot st t winners won_money (h :: acc)
 
 let rec show_win_info st winners won_money aps=
-  print_endline "Congratulations!";
-  print_endline (names_to_string winners "");
-  print_endline "You have won the game!";
+  print_endline ((names_to_string (List.length winners > 1) winners "") ^ " won the game!"); 
   change_active_players st (split_pot st (st |> active_players) winners won_money [])
 
 let show_down st =
@@ -380,7 +386,6 @@ let end_game st =
   (* |> rotate_game *)
                                     ) 
   in
-  all_ps_begin_equal_all_ps_end (all_players st) (all_players st');
   display_money (all_players st'') []
 
 (* let rec all_ps_equal_act_ps all_ps act_ps =
@@ -401,7 +406,6 @@ let rec next_game players =
 and start_game st =
   let st' = st |> set_blinds |> take_blind_money in
   show_blind_info st' (active_players st'); 
-  (* all_ps_equal_act_ps (all_players st') (active_players st'); *)
   st' 
   |> first_round_betting 
   |> flop 
@@ -412,11 +416,11 @@ and start_game st =
   |> betting
   |> show_down  
   |> end_game
-  (* |> all_ps_begin_equal_all_ps_end (all_players st') *)
   |> next_game
 
 (** [main ()] prompts for the game to play, then starts it. *)
 let main () =
+  ANSITerminal.erase Screen;
   (print_string
      "\n\nWelcome to Texas Hold 'Em.\n");
   print_endline "Please enter the number of players in your game.\nNote there may only be 2-10 players in your game";
