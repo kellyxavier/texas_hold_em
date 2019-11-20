@@ -167,23 +167,23 @@ let rec execute str p st =
     end
   | Call -> (call st p, false)
   | Allin -> 
-    (* begin
-       match all_in st p with 
-       | exception InvalidBet -> 
+    begin
+      match all_in st p with 
+      | exception InvalidBet -> 
         begin
           print_endline "You cannot bet more than the wallet of the poorest player. Please try again!";
           print_string "> ";
           match read_line () with
           | str -> execute str p st
         end
-       | st' -> (st', false)
-       end *)
-    begin
-      print_endline "Allin is currently in development. Please try another betting command!";
-      print_string "> ";
-      match read_line () with
-      | str -> execute str p st
+      | st' -> (st', false)
     end
+  (* begin
+     print_endline "Allin is currently in development. Please try another betting command!";
+     print_string "> ";
+     match read_line () with
+     | str -> execute str p st
+     end *)
   | Raise i -> 
     begin
       match raise i st p with 

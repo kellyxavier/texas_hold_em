@@ -172,7 +172,7 @@ let raise r st p =
   else raise InvalidBet
 
 let all_in st p =
-  let r = money p - st.current_bet - money_betted p in raise r st p
+  let r = money p - (st.current_bet - money_betted p) in raise r st p
 (* let m = money p in
    let active_players' = update_player_money st.active_players p (-m) [] in *)
 (* print_endline ("current_bet after " ^ name p ^ " went all in: " ^ string_of_int (st.current_bet + (m - st.current_bet + money_betted p)));   *)
