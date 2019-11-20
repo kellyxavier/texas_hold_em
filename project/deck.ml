@@ -23,7 +23,7 @@ let sorted_deck = [
   (Hearts, 13); (Spades, 1); (Spades, 2); (Spades, 3); (Spades, 4); (Spades, 5);
   (Spades, 6); (Spades, 7); (Spades, 8); (Spades, 9); (Spades, 10); 
   (Spades, 11); (Spades, 12); (Spades, 13)
-  ]
+]
 
 let is_empty d =
   match d with
@@ -47,6 +47,7 @@ let rec get_card n d r =
 (** [shuffle_help n d lst] is a tail-recursive implmenentation of shuffle
     which returns [lst]. *)
 let rec shuffle_help n d lst =
+  Random.self_init ();
   if n > 0
   then
     match get_card (Random.int n) d [] with
@@ -62,12 +63,14 @@ let rec draw_card_help n d lst =
   if n < 0 then raise InvalidArgument
   else if n > 0 
   then match d with
-  | [] -> raise EmptyDeck
-  | h :: t -> draw_card_help (n - 1) t (h :: lst)
+    | [] -> raise EmptyDeck
+    | h :: t -> draw_card_help (n - 1) t (h :: lst)
   else (lst, d)
 
 let draw_card n d =
   draw_card_help n d []
+
+let add d1 d2 = d1 @ d2
 
 let to_list d = d
 

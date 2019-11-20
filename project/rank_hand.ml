@@ -56,12 +56,12 @@ let check_royal_straight suit =
     | a :: b :: c :: d :: e :: t -> 
       if e = inc d && d = inc c && c = inc b && b = inc a then
         if List.mem (inc e) suit' then helper (b :: c :: d :: e :: t) else
-        if e = 1 then 173000 else (* Royal Flush [173000] *)
-          e + 172431 (* Straight Flush [172436-172444] ; Actual (5-13)*)
+        if e = 1 then 327430 else (* Royal Flush [327430] *)
+          e + 327416 (* Straight Flush [327421-327429] ; Actual (5-13)*)
       else helper (b :: c :: d :: e :: t)
     | h :: t -> 
-      ((List.fold_left max 0 (List.map dec suit)) + 170656) 
-      (* Flush [170661-170669] ; Actual (5-13) *) in
+      ((List.fold_left max 0 (List.map dec suit)) + 327049) 
+      (* Flush [327054-327062] ; Actual (5-13) *) in
   helper (append_first_four suit)
 
 (** [check_flush suit] is the point value of a flush with the given cards of
@@ -75,9 +75,11 @@ let rec check_foak ranks =
   match ranks with
   | a :: b :: c :: d :: t -> 
     if a = b && b = c && c = d then 
-      let highc = List.fold_left max 0 (List.filter (fun x -> x <> a) ranks) in
-      (12 * (dec a)) + (dec highc) + 172263 (* FoaK [172277-172431]
-                                               Actual (14-168) *)
+      let ranks' = List.map dec ranks in
+      let highc = List.fold_left max 0 
+          (List.filter (fun x -> x <> dec a) ranks') in
+      (14 * dec a) + highc + 327226 (* FoaK [327242-327420]
+                                               Actual (16-194) *)
     else check_foak (b :: c :: d :: t)
   | _ -> 0
 
@@ -91,20 +93,22 @@ let rec check_trio fh ranks =
     | a :: b :: c :: t -> 
       if a = b && b = c then begin
         if fh then (dec a) (* rank of trio part of full house *)
-        else let highcrds = begin
-            match (List.filter (fun x -> x <> a) ranks) with
-            | x :: y :: t -> 12 * (dec x) + (dec y)
+        else 
+          let ranks'' = List.map dec ranks in
+          let highcrds = begin
+            match (List.filter (fun x -> x <> dec a) ranks'') with
+            | x :: y :: t -> 14 * x + y
             | _ -> failwith "Could not find kicker cards for trio" end in
-          ((dec a) * 133) + highcrds + 168759 (* Trio [168930-170643] ; 
-                                                 Actual (171-1884) *)
+          ((dec a) * 195) + highcrds + 324330 (* Trio [324569-327044] ; 
+                                                 Actual (239-2714) *)
       end
       else helper fh (b :: c :: t)
     | _ -> 0 in
   helper fh (List.rev ranks)
 
 (** [check_pair fh ranks] is the point value of a pair fiven the list of all
-    ranks, however this becomes a helper function for full house when [fh] is 
-    true and returns only an intermediate point value
+    ranks, however this becomes a helper function when [fh] is 
+    true and returns only an intermediate point value 
     Requires: [ranks] must be a list of all ranks in ASCENDING order *)
 let check_pair fh ranks = 
   let rec helper fh ranks' = 
@@ -115,10 +119,10 @@ let check_pair fh ranks =
         else let highcrds = begin
             match List.filter (fun x -> x <> a) ranks |> List.map dec
                   |> List.sort compare |> List.rev with 
-            | x :: y :: z :: t -> 133 * (dec x) + 12 * (dec y) + (dec z)
+            | x :: y :: z :: t -> 195 * (dec x) + 14 * (dec y) + (dec z)
             | _ -> failwith "Could not find kicker cards for pair"  end in
-          ((dec a) * 1464) + highcrds + 146104 (* Pair [149748-166875]
-                                                  Actual (3644-20771)*)
+          ((dec a) * 2715) + highcrds + 284461 (* Pair [288000-322259]
+                                                  Actual (3539-37798)*)
       end
       else helper fh (b :: t)
     | _ -> 0 in
@@ -131,8 +135,8 @@ let check_fh ranks =
   if trio <> 0 then 
     let pair = check_pair true (List.filter (fun x -> dec x <> trio) ranks) in
     begin 
-      if pair <> 0 then (12 * trio) + pair + 170669 (* FH [170683-172263] 
-                                                       Actual (14-168)*)
+      if pair <> 0 then (14 * trio) + pair + 327047 (* FH [327063-327241] 
+                                                       Actual (16-194)*)
       else 0 - trio
     end
   else 0
@@ -145,7 +149,7 @@ let check_straight ranks =
     | a :: b :: c :: d :: e :: t -> 
       if e = inc d && d = inc c && c = inc b && b = inc a then
         if List.mem (inc e) ranks' then helper (b :: c :: d :: e :: t) else
-          (dec e) + 170643 (* Straight [170648-170656] ; Actual (5-13) *)
+          (dec e) + 327045 (* Straight [327045-327053] ; Actual (5-13) *)
       else helper (b :: c :: d :: e :: t)
     | _ -> 0 in
   helper (append_first_four ranks)
@@ -158,13 +162,14 @@ let check_twopair ranks =
     let pair2 = check_pair true (List.filter (fun x -> dec x <> pair1) ranks) in
     begin
       if pair2 > 0 then 
+        let ranks' = List.map dec ranks in
         let highcrd = List.fold_left max 0 
-            (List.filter (fun x -> dec x <> pair1 && dec x <> pair2) ranks) in
+            (List.filter (fun x -> x <> pair1 && x <> pair2) ranks') in
         begin
-          if pair1 > pair2 then (pair1 * 133) + (pair2 * 12) + highcrd + 166875
+          if pair1 > pair2 then (pair1 * 195) + (pair2 * 14) + highcrd + 321853
           else
-            (* TwoPair [167156-168759] ; Actual (281-1884)] *)
-            (pair2 * 133) + (pair1 * 12) + highcrd + 166875
+            (* TwoPair [322260-324568] ; Actual (407-2714)] *)
+            (pair2 * 195) + (pair1 * 14) + highcrd + 321853
         end
       else 0
     end
@@ -175,8 +180,8 @@ let check_twopair ranks =
 let get_highcard ranks = 
   match List.rev ranks with
   | a :: b :: c :: d :: e :: t ->
-    (* HighCard [1-146104 (120472-266575)] *)
-    ((a * 19032) + (b * 1464) + (c * 133) + (d * 12) + e) - 120471
+    (* HighCard [1-287999 (238274-526273)] *)
+    ((a * 37800) + (b * 2715) + (c * 195) + (d * 14) + e) - 238274
   | _ -> failwith "Invalid hand"
 
 

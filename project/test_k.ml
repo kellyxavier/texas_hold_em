@@ -14,7 +14,7 @@ let p5 = change_status p1 AllIn
 let p6 = change_status p1 Folded
 let p7 = change_status p1 Out
 let p8 = change_blind p1 Big
-let p9 = change_blind p1 Little
+let p9 = change_blind p1 Small
 
 let player_tests =
   [
@@ -45,7 +45,7 @@ let player_tests =
     "player's blind can be changed to Big " >:: (fun _ -> 
         assert_equal Big (p8 |> blind));
     "player's blind can be changed to Little " >:: (fun _ -> 
-        assert_equal Little (p9 |> blind));
+        assert_equal Small (p9 |> blind));
   ]
 
 let player1 = create_player "valeria"
@@ -74,6 +74,33 @@ let players_left = [List.nth (st |> active_players) 1;
                     List.nth (st |> active_players) 2;
                     List.nth (st |> active_players) 3]
 let t = empty |> insert Clubs 2 |> insert Diamonds 7 |> insert Diamonds 6
+
+let p1 = create_player "A"
+let p2 = create_player "B"
+let p3 = create_player "C"
+let p_lst1 = [p1; p2; p3]
+let test_state1 = new_round p_lst1
+let test_state_cb_20 = let s' = change_current_bet test_state1 20 
+  in change_betting_pool s' 20
+let test_state_p2_quit = quit test_state1 p2
+let test_state_p1_check = check test_state1 p1
+let test_state_p2_call = call test_state_cb_20 p2
+
+let rec get_money p lst =
+  match lst with
+  | [] -> failwith "empty list"
+  | h :: t -> if name h = name p then money h else get_money p t
+
+let rec get_money_betted p lst =
+  match lst with
+  | [] -> failwith "empty list"
+  | h :: t -> if name h = name p then money_betted h else get_money_betted p t
+
+let rec player_names  acc lst=
+  match lst with 
+  | [] -> List.rev acc
+  | h :: t -> player_names (name h :: acc) t
+
 let state_tests =
   [
     "new_round with input of player list with length strictly 
@@ -160,6 +187,28 @@ let state_tests =
         assert_equal t (change_table st t |> table));
     "state's betting pool can be updated" >:: (fun _ -> 
         assert_equal 30 (change_betting_pool st 30 |> betting_pool));
+    "has right number of active players after one quits" >:: (fun _ -> 
+        assert_equal 2
+          (test_state_p2_quit |> active_players |> List.length));
+    "successfully removes a player from active list when quit" >:: (fun _ -> 
+        assert_equal [name p1; name p3]
+          (test_state_p2_quit |> active_players |> player_names []));
+    "removes a player from all players when quit" >:: (fun _ -> 
+        assert_equal [name p1; name p3] 
+          (fold test_state_p2_quit player2 |> all_players |> player_names []));
+    "state is exact same when player checks" >:: (fun _ -> 
+        assert_equal test_state1 (test_state_p1_check)); 
+    "check when current bet not equal to money betted should raise InvalidBet" 
+    >:: (fun _ -> 
+        assert_raises (InvalidBet) (fun () -> check test_state_cb_20 p2 ));
+    "player's money is changed correctly when player calls" >:: (fun _ ->
+        assert_equal 4980 (test_state_p2_call |> active_players 
+                           |> get_money p2));
+    "player's money betted is changed correctly when player calls" >:: (fun _ ->
+        assert_equal 20 (test_state_p2_call |> active_players 
+                         |> get_money_betted p2)); 
+    "betting pool is changed correctly when player calls" >:: (fun _ ->
+        assert_equal 40 (test_state_p2_call |> betting_pool)) 
   ]
 
 let tests =

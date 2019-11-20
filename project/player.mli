@@ -14,7 +14,7 @@ type s =
 (** The type [blind] represents the blind of a player*)
 type b =
   | Big
-  | Little
+  | Small
   | None
 
 (** The abstract type of values representing players. *)
@@ -52,3 +52,12 @@ val blind : player -> b
 
 (**[change_status p bl] is the player [p] with blind [bl] *)
 val change_blind : player -> b -> player
+
+(**[money_betted p] is the amount of money player [p] currently has betted. *)
+val money_betted : player -> int
+
+(**[change_money_betted p mb] is the player [p] with [mb] added to the money 
+   player [p] currently has betted. *)
+val change_money_betted : player -> int -> player
+
+val reset_money_betted : player -> player

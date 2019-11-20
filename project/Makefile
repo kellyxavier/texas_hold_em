@@ -1,4 +1,4 @@
-MODULES=deck player test_d test_k test_v rank_hand main
+MODULES=deck player state command test_d test_k test_v rank_hand main
 OBJECTS=$(MODULES:=.cmo)
 MLS=$(MODULES:=.ml)
 MLIS=$(MODULES:=.mli)
@@ -22,6 +22,12 @@ play:
 check:
 	bash checkenv.sh && bash checktypes.sh
 	
+finalcheck: check
+	bash checkzip.sh
+
+zip:
+	zip project.zip *.ml* _tags Makefile
+
 docs: docs-public docs-private
 	
 docs-public: build
@@ -37,4 +43,4 @@ docs-private: build
 
 clean:
 	ocamlbuild -clean
-	rm -rf doc.public doc.private report search_src.zip bisect*.out
+	rm -rf doc.public doc.private report project.zip bisect*.out
