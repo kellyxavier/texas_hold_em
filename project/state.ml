@@ -14,20 +14,27 @@ type state =
     max_bet : int;
     rem_deck : deck
   }
-
+(**[deal_players d lst acc] is [lst] with the hand of each player in [lst] set
+   to a deck of 2 cards dealt from [d]*) 
 let rec deal_players d lst acc=
   match lst with 
   | [] -> (List.rev acc, d)
   | h::t -> let cards_deck_pair = draw_card 2 d in 
     let cards = fst cards_deck_pair in let rem_deck = snd cards_deck_pair in 
-    deal_players rem_deck t (change_hand h cards :: acc)
+    deal_players rem_deck t ((change_hand h cards |> reset_money_betted ):: acc)
+
+let rec min_money min players =
+  match players with 
+  | [] -> min
+  | h :: t -> if money h < min then min_money (money h) t else min_money min t
+
 
 let new_round lst=
   if List.length lst < 2  || List.length lst > 10 then raise InvalidPlayerList 
   else 
     let deal = deal_players (shuffle ()) lst [] in
     {all_players = lst; active_players = fst deal; 
-     table = empty; betting_pool = 0; current_bet = 0; max_bet = 5000;
+     table = empty; betting_pool = 0; current_bet = 0; max_bet = lst |> min_money 5000;
      rem_deck = snd deal}
 
 let all_players st = 
@@ -48,9 +55,36 @@ let rec remove_player lst p acc =
   | h::t -> if name p = name h then remove_player t p acc 
     else remove_player t p (h::acc)
 
+let rec change_player lst p acc =
+  match lst with
+  | [] -> List.rev acc 
+  | h :: t -> if name h = name p then change_player t p (p :: acc)
+    else change_player t p (h :: acc)
+
+(* let rec update st p =
+   match all_players st with
+   | [] -> failwith "player not in all players list"
+   | h :: t -> change_all_players st (change_player (all_players st) p [])
+
+   let rec asdf st =
+   match active_players st with
+   | [] -> st
+   | h :: t -> asdf (update st p) *)
+
+
+
 let remove_active_player st p =
-  let players_left = remove_player st.active_players p [] in 
-  {st with active_players = players_left}
+  (* let act_players_left = remove_player st.active_players p [] in
+     let all_ps' = change_player st.all_players p [] in
+     {st with active_players = act_players_left; all_players = all_ps'} *)
+
+  let act_players_left = remove_player st.active_players p [] in
+  {st with active_players = act_players_left}
+
+let rec remove_all_active_players st act_players =
+  match act_players with
+  | [] -> st 
+  | h :: t -> remove_all_active_players (remove_active_player st h) t
 
 let table st =
   st.table

@@ -43,6 +43,8 @@ val change_active_players : state -> player list -> state
    player [p]. *)
 val remove_active_player : state -> player -> state
 
+val remove_all_active_players: state -> player list -> state 
+
 (** [table st] is the deck currently on the table in state [st]. *)
 val table : state -> deck
 

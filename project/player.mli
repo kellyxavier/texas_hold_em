@@ -59,3 +59,5 @@ val money_betted : player -> int
 (**[change_money_betted p mb] is the player [p] with [mb] added to the money 
    player [p] currently has betted. *)
 val change_money_betted : player -> int -> player
+
+val reset_money_betted : player -> player

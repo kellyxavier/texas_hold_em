@@ -10,6 +10,7 @@ type amount = int
     into a verb and possibly an int. *)
 type command = 
   | Quit
+  | Continue
   | Fold
   | Call
   | Check

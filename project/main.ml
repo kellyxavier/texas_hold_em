@@ -13,6 +13,11 @@ let rec create_player_list x acc =
         match read_line () with
         | n -> create_player_list (x-1) (create_player n::acc))
 
+(** [more_than_one_player st] is true if there's more than one active player
+    in the game and false otherwise. *)
+let only_one_player st =
+  (active_players st) |> List.length < 2
+
 (** [remove_blinds_aux lst acc] is [lst] without any blinds on the players. *)
 let rec remove_blinds_aux lst acc =
   match lst with 
@@ -129,6 +134,13 @@ let rec execute str p st =
       match read_line () with
       | str -> execute str p st
     end
+  | Continue -> 
+    begin
+      print_endline "Please enter a betting action.";
+      print_string "> ";
+      match read_line () with
+      | str -> execute str p st
+    end
   | Fold -> (fold st p, false)
   | Check -> 
     begin
@@ -148,7 +160,7 @@ let rec execute str p st =
       match all_in st p with 
       | exception InvalidBet -> 
         begin
-          print_endline "You cannot check when the current bet is not 0. Please try again!";
+          print_endline "You cannot bet more than the wallet of the poorest player. Please try again!";
           print_string "> ";
           match read_line () with
           | str -> execute str p st
@@ -160,7 +172,7 @@ let rec execute str p st =
       match raise i st p with 
       | exception InvalidBet -> 
         begin
-          print_endline "You cannot check when the current bet is not 0. Please try again!";
+          print_endline "You cannot bet more than the wallet of the poorest player. Please try again!";
           print_string "> ";
           match read_line () with
           | str -> execute str p st
@@ -183,45 +195,53 @@ let rec execute str p st =
     end
 
 let rec everyone_gets_a_turn players st =
-  match players with
-  | [] -> st
-  | h::t -> print_endline ((name h)^", press enter when you are alone");
-    print_string "> ";
-    match read_line () with 
-    | _ -> 
-      show_info h st; 
-      print_endline ("What would you like to do?");
-      print_string "> ";
-      begin 
-        match read_line () with
-        | str -> ANSITerminal.erase Screen; 
-          let act = execute str h st in 
-          match act with
-          | (st', b) -> 
-            if b then continued_betting (st' |> active_players |> cb_lst h) st' 
-            else betting_aux true t st'
-      end
+  if only_one_player st then st 
+  else
+    begin
+      match players with
+      | [] -> st
+      | h::t -> print_endline ((name h)^", press enter when you are alone");
+        print_string "> ";
+        match read_line () with 
+        | _ -> 
+          show_info h st; 
+          print_endline ("What would you like to do?");
+          print_string "> ";
+          begin 
+            match read_line () with
+            | str -> ANSITerminal.erase Screen; 
+              let act = execute str h st in 
+              match act with
+              | (st', b) -> 
+                if b then continued_betting (st' |> active_players |> cb_lst h) st' 
+                else betting_aux true t st'
+          end
+    end
 
 and continued_betting players st = 
-  match players with
-  | [] -> failwith "betting without players"
-  | h :: [] -> st
-  | h::t -> print_endline "previous player just raised"; print_endline ((name h)^", press enter when you are alone");
-    print_string "> ";
-    match read_line () with 
-    | _ -> 
-      show_info h st; 
-      print_endline ("What would you like to do?");
-      print_string "> ";
-      begin 
-        match read_line () with
-        | str -> ANSITerminal.erase Screen; 
-          let act = execute str h st in 
-          match act with
-          | (st', b) -> 
-            if b then continued_betting (st' |> active_players |> cb_lst h) st' 
-            else betting_aux false t st'
-      end
+  if only_one_player st then st 
+  else
+    begin
+      match players with
+      | [] -> failwith "betting without players"
+      | h :: [] -> st
+      | h::t -> print_endline ((name h)^", press enter when you are alone");
+        print_string "> ";
+        match read_line () with 
+        | _ -> 
+          show_info h st; 
+          print_endline ("What would you like to do?");
+          print_string "> ";
+          begin 
+            match read_line () with
+            | str -> ANSITerminal.erase Screen; 
+              let act = execute str h st in 
+              match act with
+              | (st', b) -> 
+                if b then continued_betting (st' |> active_players |> cb_lst h) st' 
+                else betting_aux false t st'
+          end
+    end
 
 (** [betting_aux players] prints the private information of each players to 
     the terminal, clearing the terminal between each player*)
@@ -229,36 +249,130 @@ and betting_aux b players st =
   if b then everyone_gets_a_turn players st else continued_betting players st
 
 let first_round_betting st =
-  betting_aux true (st |> active_players |> rotate_first_round) st
+  if only_one_player st then st 
+  else betting_aux true (st |> active_players |> rotate_first_round) st
 
 (** [betting st] prints the private information of each players to 
     the terminal, clearing the terminal between each player*)
 let rec betting st =
-  betting_aux true (st |> active_players) st
+  if only_one_player st then st
+  else betting_aux true (st |> active_players) st
 
 let flop st = 
-  let d = draw_card 3 (rem_deck st) in
-  let st' = change_table (change_rem_deck (snd d) st) (fst d) in 
-  show_flop st'; st'
+  if only_one_player st then st
+  else
+    let d = draw_card 3 (rem_deck st) in
+    let st' = change_table (change_rem_deck (snd d) st) (fst d) in 
+    show_flop st'; st'
 
 let turn st = 
-  let d = draw_card 1 (rem_deck st) in
-  let st' = change_table (change_rem_deck (snd d) st) (fst d) in 
-  show_turn st'; st'
+  if only_one_player st then st
+  else
+    let d = draw_card 1 (rem_deck st) in
+    let st' = change_table (change_rem_deck (snd d) st) (fst d) in 
+    show_turn st'; st'
 
 let river st = 
-  let d = draw_card 1 (rem_deck st) in
-  let st' = change_table (change_rem_deck (snd d) st) (fst d) in 
-  show_river st'; st'
-
+  if only_one_player st then st
+  else
+    let d = draw_card 1 (rem_deck st) in
+    let st' = change_table (change_rem_deck (snd d) st) (fst d) in 
+    show_river st'; st'
 let finish st =
   print_endline "That's all for the demo game folks!";
   st
 
-(** [start_game x] initializes a game with [x] players*)
-let start_game x =
-  let st = (create_player_list x []) |> new_round |> set_blinds in
-  let st' = take_blind_money st in
+let rec show_down_aux st players high acc =
+  match players with 
+  | [] -> List.rev acc
+  | h :: t -> let h_value = add (h |> hand) (st |> table) |> hand_value in 
+    if h_value > high then show_down_aux st t h_value ([h])
+    else if h_value = high then show_down_aux st t high (h :: acc)
+    else show_down_aux st t high (acc)
+
+let rec names_to_string players acc =
+  match players with 
+  | [] -> acc
+  | h :: t -> names_to_string t (acc ^ "\n" ^ name h)
+
+let rec split_pot st aps winners won_money acc =
+  match aps with
+  | [] -> List.rev acc
+  | h :: t -> if List.mem (name h) (List.map (fun p -> name p) winners) 
+    then split_pot st t winners won_money ((change_money h won_money) :: acc)
+    else split_pot st t winners won_money (h :: acc)
+
+let rec show_win_info st winners won_money aps=
+  print_endline "Congratulations!";
+  print_endline (names_to_string winners "");
+  print_endline "You have won the game!";
+  change_active_players st (split_pot st (st |> active_players) winners won_money [])
+
+let show_down st =
+  if only_one_player st
+  then show_win_info st (active_players st) (betting_pool st) (active_players st) 
+  else
+    begin 
+      let winners = show_down_aux st (active_players st) 0 [] in
+      show_win_info st winners (betting_pool st / List.length winners) 
+        (active_players st)
+    end
+
+let rec player_continuing str =
+  match parse str with
+  | Quit -> false
+  | Continue -> true
+  | exception Empty -> 
+    begin
+      print_endline "You cannot enter an empty command. Please enter quit or continue!";
+      print_string "> ";
+      match read_line () with
+      | str -> player_continuing str
+    end
+  | exception Malformed -> 
+    begin
+      print_endline "We did not recognize that. Please enter quit or continue!";
+      print_string "> ";
+      match read_line () with
+      | str -> player_continuing str
+    end
+  | _ -> 
+    begin
+      print_endline "Please either quit or continue";
+      print_string "> ";
+      match read_line () with
+      | str -> player_continuing str
+    end
+
+let rec display_money players acc =
+  match players with 
+  | [] -> List.rev acc
+  | h :: t -> print_endline ("\n" ^ name h ^ ", you now have $" ^ (string_of_int (money h)));
+    print_endline "Would you like to continue the game or quit?"; 
+    match read_line () with
+    | str -> if player_continuing str then display_money t (h :: acc)
+      else display_money t acc
+
+let rec update_all_ps st =
+  (* match active_players st with 
+     | [] -> st
+     | h :: t -> update_all_ps (remove_active_player st h) *)
+  (* remove_all_active_players st (active_players st) *)
+  failwith "unimplemented"
+
+let end_game st =
+  (* let st' = update_all_ps st in
+     let st'' = change_all_players st' (st' |> all_players |> rotate_game) in *)
+  match display_money (active_players st) [] with 
+  | _ -> ()
+
+let rec next_game players = 
+  if List.length players <= 1 then ()
+  else players |> new_round |> start_game
+
+(** [start_game st] plays a game starting in [st]. *)
+and start_game st =
+  let st' = st |> set_blinds |> take_blind_money in
   show_blind_info st' (active_players st');
   st' 
   |> first_round_betting  
@@ -268,22 +382,21 @@ let start_game x =
   |> betting 
   |> river 
   |> betting 
-  (*|> showdown *) 
-  |> finish
+  |> show_down 
+  |> end_game
+(* |> next_game *)
 
 (** [main ()] prompts for the game to play, then starts it. *)
 let main () =
   (print_string
      "\n\nWelcome to Texas Hold 'Em.\n");
-  print_endline "Please enter the number of players in your game. \n Note there may only be 2-10 players in your game";
+  print_endline "Please enter the number of players in your game.\nNote there may only be 2-10 players in your game";
   print_string  "> ";
   match int_of_string(read_line ()) with
-  | exception e -> print_endline "You must enter a number. 
-                            Start the game engine again to play"
-  | x -> if (x > 10 || x <2 ) then print_endline "You must enter a number between 2 and 10.
-                            Start the game engine again to play" 
-    else match start_game x with 
-      | _ -> ()
+  | exception End_of_file -> ()
+  | exception e -> print_endline "You must enter a number.\nStart the game engine again to play"
+  | x -> if (x > 10 || x <2 ) then print_endline "You must enter a number between 2 and 10. \n Start the game engine again to play";
+    start_game (create_player_list x [] |> new_round)
 
 let () = main ()
 

@@ -2,6 +2,7 @@ type amount = int
 
 type command = 
   | Quit
+  | Continue
   | Fold
   | Call
   | Check 
@@ -19,6 +20,7 @@ let parse str =
     let trimmed_word_list = List.filter (fun s -> s <> "") word_list in
     let command = List.nth trimmed_word_list 0 in
     if phrase = "quit" then Quit
+    else if phrase = "continue" then Continue
     else if phrase = "fold" then Fold
     else if phrase = "call" then Call
     else if phrase = "check" then Check

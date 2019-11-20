@@ -67,6 +67,7 @@ module type CommandSig = sig
   type amount = int
   type command = 
     | Quit
+    | Continue
     | Fold
     | Call
     | Check 

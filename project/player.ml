@@ -58,4 +58,5 @@ let money_betted p =
 let change_money_betted p mb =
   {p with money_betted = p.money_betted + mb}
 
-
+let reset_money_betted p =
+  {p with money_betted = 0}
