@@ -137,7 +137,9 @@ let rec update_player_money lst p m acc =
   match lst with 
   | [] -> List.rev acc
   | h :: t -> if name p = name h then let updated_player = change_money p m 
-      in update_player_money t p m (updated_player :: acc)
+      in 
+      (* print_endline (name p ^ "has betted " ^(string_of_int (money_betted updated_player) ^ " after going all in"));  *)
+      update_player_money t p m (updated_player :: acc)
     else update_player_money t p m (h :: acc)
 
 let quit st p =
@@ -156,22 +158,28 @@ let call st p =
   in {st with active_players = active_players'; 
               betting_pool = st.betting_pool + diff}
 
-let all_in st p =
-  if max_bet st >= money p + money_betted p
-  then 
-    let m = money p in
-    let active_players' = update_player_money st.active_players p (-m) [] in  
-    {st with active_players = active_players';
-             betting_pool = st.betting_pool + m; 
-             current_bet = st.current_bet + (m - st.current_bet - money_betted p)}
-  else raise InvalidBet
+
 
 let raise r st p =
   let m = (st.current_bet - money_betted p + r) in
   if max_bet st >=  st.current_bet + r
   then 
     let active_players' = update_player_money st.active_players p (-m) []
-    in  {st with active_players = active_players';
-                 betting_pool = st.betting_pool + m; 
-                 current_bet = st.current_bet + r}
+    in  
+    {st with active_players = active_players';
+             betting_pool = st.betting_pool + m; 
+             current_bet = st.current_bet + r}
   else raise InvalidBet
+
+let all_in st p =
+  let r = money p - st.current_bet - money_betted p in raise r st p
+(* let m = money p in
+   let active_players' = update_player_money st.active_players p (-m) [] in *)
+(* print_endline ("current_bet after " ^ name p ^ " went all in: " ^ string_of_int (st.current_bet + (m - st.current_bet + money_betted p)));   *)
+(* {st with active_players = active_players';
+         betting_pool = st.betting_pool + m; 
+         current_bet = st.current_bet + (m - st.current_bet - money_betted p)} *)
+(* {st with active_players = active_players';
+         betting_pool = st.betting_pool + m; 
+         current_bet = st.current_bet + (st.current_bet - m)} *)
+(* else raise InvalidBet *)

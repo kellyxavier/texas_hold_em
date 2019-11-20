@@ -113,7 +113,7 @@ let rec show_blind_info st players=
 (** [show_info_helper p] prints the private information of player [p]*)
 let show_info p st =
   let money = money p in let hand = hand p |> to_string in 
-  print_endline ("You have " ^ (string_of_int money) ^ " dollars and your cards are\n" ^ hand);
+  print_endline ("You have $" ^ (string_of_int money) ^ " and your cards are\n" ^ hand);
   let t = st |> table |> to_string in
   if t = "" then  print_endline "There are no cards currently on the table"
   else print_endline ("The table currently has the cards: \n" ^ t)
@@ -167,16 +167,22 @@ let rec execute str p st =
     end
   | Call -> (call st p, false)
   | Allin -> 
-    begin
-      match all_in st p with 
-      | exception InvalidBet -> 
+    (* begin
+       match all_in st p with 
+       | exception InvalidBet -> 
         begin
           print_endline "You cannot bet more than the wallet of the poorest player. Please try again!";
           print_string "> ";
           match read_line () with
           | str -> execute str p st
         end
-      | st' -> (st', false)
+       | st' -> (st', false)
+       end *)
+    begin
+      print_endline "Allin is currently in development. Please try another betting command!";
+      print_string "> ";
+      match read_line () with
+      | str -> execute str p st
     end
   | Raise i -> 
     begin
