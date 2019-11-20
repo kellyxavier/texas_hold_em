@@ -34,7 +34,9 @@ let new_round lst=
   else 
     let deal = deal_players (shuffle ()) lst [] in
     {all_players = lst; active_players = fst deal; 
-     table = empty; betting_pool = 0; current_bet = 0; max_bet = lst |> min_money 5000;
+     table = empty; betting_pool = 0; current_bet = 0; max_bet = lst 
+                                                                 |> min_money 
+                                                                   max_int;
      rem_deck = snd deal}
 
 let all_players st = 
@@ -74,12 +76,12 @@ let rec change_player lst p acc =
 
 
 let remove_active_player st p =
-  (* let act_players_left = remove_player st.active_players p [] in
-     let all_ps' = change_player st.all_players p [] in
-     {st with active_players = act_players_left; all_players = all_ps'} *)
-
   let act_players_left = remove_player st.active_players p [] in
-  {st with active_players = act_players_left}
+  let all_ps' = change_player st.all_players p [] in
+  {st with active_players = act_players_left; all_players = all_ps'}
+
+(* let act_players_left = remove_player st.active_players p [] in
+   {st with active_players = act_players_left} *)
 
 let rec remove_all_active_players st act_players =
   match act_players with

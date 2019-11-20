@@ -353,18 +353,10 @@ let rec display_money players acc =
     | str -> if player_continuing str then display_money t (h :: acc)
       else display_money t acc
 
-let rec update_all_ps st =
-  (* match active_players st with 
-     | [] -> st
-     | h :: t -> update_all_ps (remove_active_player st h) *)
-  (* remove_all_active_players st (active_players st) *)
-  failwith "unimplemented"
-
 let end_game st =
-  (* let st' = update_all_ps st in
-     let st'' = change_all_players st' (st' |> all_players |> rotate_game) in *)
-  match display_money (active_players st) [] with 
-  | _ -> ()
+  let st' = remove_all_active_players st (active_players st) in
+  let st'' = change_all_players st' (st' |> all_players |> rotate_game) in
+  display_money (all_players st'') []
 
 let rec next_game players = 
   if List.length players <= 1 then ()
@@ -384,7 +376,7 @@ and start_game st =
   |> betting 
   |> show_down 
   |> end_game
-(* |> next_game *)
+  |> next_game
 
 (** [main ()] prompts for the game to play, then starts it. *)
 let main () =
