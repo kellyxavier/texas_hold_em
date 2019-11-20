@@ -353,29 +353,53 @@ let rec display_money players acc =
     | str -> if player_continuing str then display_money t (h :: acc)
       else display_money t acc
 
+let rec all_ps_begin_equal_all_ps_end all_ps act_ps =
+  match (all_ps, act_ps) with 
+  | [], [] -> print_endline "WOO all players in beginning and all players at the end are same length and in same order in the beginning"
+  | _, [] -> failwith "more all players in beginnning than all players in the end"
+  | [], _ -> failwith "more all players in end than all players in the beginning"
+  | h1 :: t1, h2 :: t2 -> if name h1 = name h2 then all_ps_begin_equal_all_ps_end t1 t2
+    else failwith "all players in beginning and all players in end are not in the same order"
+
 let end_game st =
   let st' = remove_all_active_players st (active_players st) in
-  let st'' = change_all_players st' (st' |> all_players |> rotate_game) in
+  let st'' = change_all_players st' (st' |> all_players 
+  (* |> rotate_game *)
+                                    ) 
+  in
+  all_ps_begin_equal_all_ps_end (all_players st) (all_players st');
   display_money (all_players st'') []
+
+(* let rec all_ps_equal_act_ps all_ps act_ps =
+   match (all_ps, act_ps) with 
+   | [], [] -> print_endline "WOO active players and all players same length and in same order in the beginning"
+   | _, [] -> failwith "more all players than active players in the begining"
+   | [], _ -> failwith "more active players than all players in the begining"
+   | h1 :: t1, h2 :: t2 -> if name h1 = name h2 then all_ps_equal_act_ps t1 t2
+    else failwith "all players and active players are not in the same order" *)
+
+
 
 let rec next_game players = 
   if List.length players <= 1 then ()
-  else players |> new_round |> start_game
+  else players |> rotate_game |> new_round |> start_game
 
 (** [start_game st] plays a game starting in [st]. *)
 and start_game st =
   let st' = st |> set_blinds |> take_blind_money in
-  show_blind_info st' (active_players st');
+  show_blind_info st' (active_players st'); 
+  (* all_ps_equal_act_ps (all_players st') (active_players st'); *)
   st' 
-  |> first_round_betting  
+  |> first_round_betting 
   |> flop 
-  |> betting 
+  |> betting
   |> turn 
   |> betting 
   |> river 
-  |> betting 
-  |> show_down 
+  |> betting
+  |> show_down  
   |> end_game
+  (* |> all_ps_begin_equal_all_ps_end (all_players st') *)
   |> next_game
 
 (** [main ()] prompts for the game to play, then starts it. *)
