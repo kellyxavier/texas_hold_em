@@ -94,7 +94,7 @@ let rec check_trio fh ranks =
         else let highcrds = begin
             match (List.filter (fun x -> x <> a) ranks) with
             | x :: y :: t -> 12 * (dec x) + (dec y)
-            | _ -> failwith "Shouldn't happen (trio)" end in
+            | _ -> failwith "Could not find kicker cards for trio" end in
           ((dec a) * 133) + highcrds + 168759 (* Trio [168930-170643] ; 
                                                  Actual (171-1884) *)
       end
@@ -116,7 +116,7 @@ let check_pair fh ranks =
             match List.filter (fun x -> x <> a) ranks |> List.map dec
                   |> List.sort compare |> List.rev with 
             | x :: y :: z :: t -> 133 * (dec x) + 12 * (dec y) + (dec z)
-            | _ -> failwith "Shouldn't happen (pair)"  end in
+            | _ -> failwith "Could not find kicker cards for pair"  end in
           ((dec a) * 1464) + highcrds + 146104 (* Pair [149748-166875]
                                                   Actual (3644-20771)*)
       end
@@ -144,7 +144,8 @@ let check_straight ranks =
     match ranks' with
     | a :: b :: c :: d :: e :: t -> 
       if e = inc d && d = inc c && c = inc b && b = inc a then
-        (dec e) + 170643 (* Straight [170648-170656] ; Actual (5-13) *)
+        if List.mem (inc e) ranks' then helper (b :: c :: d :: e :: t) else
+          (dec e) + 170643 (* Straight [170648-170656] ; Actual (5-13) *)
       else helper (b :: c :: d :: e :: t)
     | _ -> 0 in
   helper (append_first_four ranks)
@@ -169,12 +170,14 @@ let check_twopair ranks =
     end
   else 0
 
+(** [get_highcard ranks] is the point value of the highcards in a given list of
+    all ranks. This accounts for kicker cards as well. *)
 let get_highcard ranks = 
   match List.rev ranks with
   | a :: b :: c :: d :: e :: t ->
     (* HighCard [1-146104 (120472-266575)] *)
     ((a * 19032) + (b * 1464) + (c * 133) + (d * 12) + e) - 120471
-  | _ -> failwith "Something is terribly wrong"
+  | _ -> failwith "Invalid hand"
 
 
 let hand_value hand =
@@ -194,10 +197,11 @@ let hand_value hand =
           let foak = check_foak sort.ranks in
           if foak > 0 then foak else
 
-            (* Checking for Full House (and by extension finding out if trio exists) *)
+            (* Checking for Full House 
+               (and by extension finding out if trio exists) *)
             let fh = check_fh sort.ranks in
             if fh > 0 then fh else
-              (* Rank of trio if trio exists (chance for optimization exists) *)
+              (* Rank of trio if trio exists (chance for optimization) *)
               (* let trio = if fh < 0 then 0 - fh else 0 in *)
 
               (* Checking for a straight *)
