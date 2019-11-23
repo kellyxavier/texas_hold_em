@@ -114,9 +114,9 @@ let state_round__v_tests = [
                                                        (all_in test_state1 player1 |> betting_pool)~printer:string_of_int);
      "all_in correctly increase how much the player has betted" >:: (fun _ -> 
       assert_equal 5000
-        (all_in test_state1 player1 |> active_players |> get_betted player1)~printer:string_of_int);
-     "cannot all_in more than the max bet" >:: (fun _ -> assert_raises InvalidBet
-                                                (fun _ -> all_in test_state2 player1)); *)
+        (all_in test_state1 player1 |> active_players |> get_betted player1)~printer:string_of_int); *)
+  "cannot all_in more than the max bet" >:: (fun _ -> assert_raises InvalidBet
+                                                (fun _ -> all_in test_state2 player1));
 
   "raise i correctly updates player wallet" >:: (fun _ -> 
       assert_equal 4875

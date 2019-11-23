@@ -110,7 +110,7 @@ let rec show_blind_info st players=
     else display_blind_money h; show_blind_info st t
 
 
-(** [show_info_helper p] prints the private information of player [p]*)
+(** [show_info p st] prints the private information of player [p]*)
 let show_info p st =
   let money = money p in let hand = hand p |> to_string in 
   print_endline ("You have $" ^ (string_of_int money) ^ " and your cards are\n" ^ hand);
@@ -118,23 +118,88 @@ let show_info p st =
   if t = "" then  print_endline "There are no cards currently on the table"
   else print_endline ("The table currently has the cards: \n" ^ t)
 
+(** [show_flop st] reveals the table with the newly-added flop to all 
+    players. *)
 let show_flop st =
   print_endline "We will now reveal the flop.";
   print_endline ("The table currently has the cards: \n" ^ 
                  (st |> table |> to_string));
   print_endline "Ready to bet?\n"
 
+(** [show_river st] reveals the table with the newly-added river to all 
+    players. *)
 let show_river st =
   print_endline "We will now reveal the river.";
   print_endline ("The table currently has the cards: \n" ^ 
                  (st |> table |> to_string));
   print_endline "Ready to bet?\n"
 
+(** [show_turn st] reveals the table with the newly-added turn to all 
+    players. *)
 let show_turn st =
   print_endline "We will now reveal the turn.";
   print_endline ("The table currently has the cards: \n" ^ 
                  (st |> table |> to_string));
   print_endline "Ready to bet?\n"
+
+let rec execute_all_in str p st =
+  match parse str with
+  | Quit -> 
+    begin
+      print_endline "You cannot quit in the middle of the game. Please try again!";
+      print_string "> ";
+      match read_line () with
+      | str -> execute_all_in str p st
+    end
+  | Continue -> 
+    begin
+      print_endline "Please enter a betting action.";
+      print_string "> ";
+      match read_line () with
+      | str -> execute_all_in str p st
+    end
+  | Fold -> (fold st p, false)
+  | Check -> 
+    begin
+      match check st p with 
+      | exception InvalidBet -> 
+        begin
+          print_endline "You cannot check when the current bet is not 0. Please try again!";
+          print_string "> ";
+          match read_line () with
+          | str -> execute_all_in str p st
+        end
+      | st' -> (st', false)
+    end
+  | Call -> (call st p, false)
+  | Allin -> 
+    begin
+      print_endline "Please either quit, call, or check";
+      print_string "> ";
+      match read_line () with
+      | str -> execute_all_in str p st
+    end
+  | Raise i -> 
+    begin
+      print_endline "Please either quit, call, or check";
+      print_string "> ";
+      match read_line () with
+      | str -> execute_all_in str p st
+    end
+  | exception Empty -> 
+    begin
+      print_endline "You cannot enter an empty command. Please try again!";
+      print_string "> ";
+      match read_line () with
+      | str -> execute_all_in str p st
+    end
+  | exception Malformed -> 
+    begin
+      print_endline "We did not recognize that. Please try again!";
+      print_string "> ";
+      match read_line () with
+      | str -> execute_all_in str p st
+    end
 
 let rec execute str p st =
   match parse str with
@@ -171,7 +236,7 @@ let rec execute str p st =
       match all_in st p with 
       | exception InvalidBet -> 
         begin
-          print_endline "You cannot bet more than the wallet of the poorest player. Please try again!";
+          print_endline "You may only bet an amount between $0 and the wallet of the poorest player. Please try again!";
           print_string "> ";
           match read_line () with
           | str -> execute str p st
@@ -189,7 +254,7 @@ let rec execute str p st =
       match raise i st p with 
       | exception InvalidBet -> 
         begin
-          print_endline "You cannot bet more than the wallet of the poorest player. Please try again!";
+          print_endline "You may only bet an amount between $0 and the wallet of the poorest player. Please try again!";
           print_string "> ";
           match read_line () with
           | str -> execute str p st
@@ -211,67 +276,91 @@ let rec execute str p st =
       | str -> execute str p st
     end
 
-let rec everyone_gets_a_turn players st =
-  if only_one_player st then st 
+let rec all_no_money players  =
+  match players with
+  | [] -> true
+  | h :: t -> if money h = 0 then all_no_money t else false 
+
+let rec one_no_money players =
+  match players with 
+  | [] -> false
+  | h :: t -> if money h = 0 then true else one_no_money t
+
+let rec all_in_mode players st =
+  st
+
+and everyone_gets_a_turn players st =
+  if all_no_money players || only_one_player st then st 
+  (* else if one_no_money players then all_in_mode players st *)
   else
     begin
       match players with
       | [] -> st
-      | h::t -> print_endline ("\n\n"^(name h)^", press enter when you are alone");
-        print_string "> ";
-        match read_line () with 
-        | _ -> 
-          show_info h st; 
-          let need_to_stay_in =  current_bet st - money_betted h in
-          print_endline ("You must bet at least $" ^ string_of_int (current_bet st - money_betted h) ^ " to stay in the game.");
-          if need_to_stay_in = 0 
-          then
-            print_endline ("Your options are 'fold', 'check', 'call', 'allin', 'raise x',\nwhere x is a positive integer.")
-          else
-            print_endline ("Your options are 'fold', 'call', 'allin', 'raise x', \nwhere x is a positive integer.\n");
-          print_endline "What would you like to do?";         
-          print_string "> ";
-          begin 
-            match read_line () with
-            | str -> ANSITerminal.erase Screen; 
-              let act = execute str h st in 
-              match act with
-              | (st', b) -> 
-                if b then continued_betting (st' |> active_players |> cb_lst h) st' 
-                else betting_aux true t st'
+      | h::t -> if money h = 0 then everyone_gets_a_turn t st 
+        else if one_no_money players then all_in_mode players st
+        else
+          begin
+            print_endline ("\n\n"^(name h)^", press enter when you are alone");
+            print_string "> ";
+            match read_line () with 
+            | _ -> 
+              show_info h st; 
+              let need_to_stay_in =  current_bet st - money_betted h in
+              print_endline ("You must bet at least $" ^ string_of_int (current_bet st - money_betted h) ^ " to stay in the game.");
+              if need_to_stay_in = 0 
+              then
+                print_endline ("Your options are 'fold', 'check', 'call', 'allin', 'raise x',\nwhere x is a positive integer.")
+              else
+                print_endline ("Your options are 'fold', 'call', 'allin', 'raise x', \nwhere x is a positive integer.\n");
+              print_endline "What would you like to do?";         
+              print_string "> ";
+              begin 
+                match read_line () with
+                | str -> ANSITerminal.erase Screen; 
+                  let act = execute str h st in 
+                  match act with
+                  | (st', b) -> 
+                    if b then continued_betting (st' |> active_players |> cb_lst h) st' 
+                    else betting_aux true t st'
+              end
           end
     end
 
 and continued_betting players st = 
-  if only_one_player st then st 
+  if all_no_money players || only_one_player st then st
+  else if one_no_money players then all_in_mode players st
   else
     begin
       match players with
       | [] -> failwith "betting without players"
       | h :: [] -> st
-      | h::t -> print_endline ("\n\n"^(name h)^", press enter when you are alone");
-        print_string "> ";
-        match read_line () with 
-        | _ -> 
-          show_info h st;
-          let need_to_stay_in =  current_bet st - money_betted h in
-          print_endline ("You must bet at least $" ^ string_of_int (current_bet st - money_betted h) ^ " to stay in the game.");
-          if need_to_stay_in = 0 
-          then
-            print_endline ("Your options are 'fold', 'check', 'call', 'allin', 'raise x', \n where x is a positive integer.")
-          else
-            print_endline ("Your options are 'fold', 'call', 'allin', 'raise x', \n where x is a positive integer.");
-          print_endline "What would you like to do?";
-          print_string "> ";
-          begin 
-            match read_line () with
-            | str -> ANSITerminal.erase Screen; 
-              let act = execute str h st in 
-              match act with
-              | (st', b) -> 
-                if b then continued_betting (st' |> active_players |> cb_lst h) st' 
-                else betting_aux false t st'
+      | h::t -> if money h = 0 then continued_betting t st else 
+          begin
+            print_endline ("\n\n"^(name h)^", press enter when you are alone");
+            print_string "> ";
+            match read_line () with 
+            | _ -> 
+              show_info h st;
+              let need_to_stay_in =  current_bet st - money_betted h in
+              print_endline ("You must bet at least $" ^ string_of_int (current_bet st - money_betted h) ^ " to stay in the game.");
+              if need_to_stay_in = 0 
+              then
+                print_endline ("Your options are 'fold', 'check', 'call', 'allin', 'raise x', \n where x is a positive integer.")
+              else
+                print_endline ("Your options are 'fold', 'call', 'allin', 'raise x', \n where x is a positive integer.");
+              print_endline "What would you like to do?";
+              print_string "> ";
+              begin 
+                match read_line () with
+                | str -> ANSITerminal.erase Screen; 
+                  let act = execute str h st in 
+                  match act with
+                  | (st', b) -> 
+                    if b then continued_betting (st' |> active_players |> cb_lst h) st' 
+                    else betting_aux false t st'
+              end
           end
+
     end
 
 (** [betting_aux players] prints the private information of each players to 
@@ -381,14 +470,24 @@ let rec player_continuing str =
       | str -> player_continuing str
     end
 
-let rec display_money players acc =
+let rec quit_or_cont players acc =
   match players with 
   | [] -> List.rev acc
-  | h :: t -> print_endline ("\n" ^ name h ^ ", you now have $" ^ (string_of_int (money h)));
-    print_endline "Would you like to continue the game or quit?"; 
-    match read_line () with
-    | str -> if player_continuing str then display_money t (h :: acc)
-      else display_money t acc
+  | h :: t -> 
+    let m = money h in
+    print_endline ("\n" ^ name h ^ ", you now have $" ^ (string_of_int m));
+    if m <= 0 
+    then (print_endline "You are out of money and are now invited to leave the table."; 
+          quit_or_cont t acc)
+    else if m < 50 
+    then (print_endline "You do not have the $50 necessary to continue playing at this table. You now are invited to leave."; 
+          quit_or_cont t acc)
+    else (
+      print_endline "Would you like to quit or continue?";
+      match read_line () with
+      | str -> if player_continuing str then quit_or_cont t (h :: acc)
+        else quit_or_cont t acc )
+
 
 let rec all_ps_begin_equal_all_ps_end all_ps act_ps =
   match (all_ps, act_ps) with 
@@ -404,7 +503,7 @@ let end_game st =
   (* |> rotate_game *)
                                     ) 
   in
-  display_money (all_players st'') []
+  quit_or_cont (all_players st'') []
 
 (* let rec all_ps_equal_act_ps all_ps act_ps =
    match (all_ps, act_ps) with 

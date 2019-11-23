@@ -162,7 +162,7 @@ let call st p =
 
 let raise r st p =
   let m = (st.current_bet - money_betted p + r) in
-  if max_bet st >=  st.current_bet + r
+  if max_bet st >=  st.current_bet + r && r >= 0
   then 
     let active_players' = update_player_money st.active_players p (-m) []
     in  
