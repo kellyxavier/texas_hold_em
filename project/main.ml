@@ -222,8 +222,14 @@ let rec everyone_gets_a_turn players st =
         match read_line () with 
         | _ -> 
           show_info h st; 
+          let need_to_stay_in =  current_bet st - money_betted h in
           print_endline ("You must bet at least $" ^ string_of_int (current_bet st - money_betted h) ^ " to stay in the game.");
-          print_endline ("What would you like to do?");
+          if need_to_stay_in = 0 
+          then
+            print_endline ("Your options are 'fold', 'check', 'call', 'allin', 'raise x',\nwhere x is a positive integer.")
+          else
+            print_endline ("Your options are 'fold', 'call', 'allin', 'raise x', \nwhere x is a positive integer.\n");
+          print_endline "What would you like to do?";         
           print_string "> ";
           begin 
             match read_line () with
@@ -247,9 +253,15 @@ and continued_betting players st =
         print_string "> ";
         match read_line () with 
         | _ -> 
-          show_info h st; 
+          show_info h st;
+          let need_to_stay_in =  current_bet st - money_betted h in
           print_endline ("You must bet at least $" ^ string_of_int (current_bet st - money_betted h) ^ " to stay in the game.");
-          print_endline ("What would you like to do?");
+          if need_to_stay_in = 0 
+          then
+            print_endline ("Your options are 'fold', 'check', 'call', 'allin', 'raise x', \n where x is a positive integer.")
+          else
+            print_endline ("Your options are 'fold', 'call', 'allin', 'raise x', \n where x is a positive integer.");
+          print_endline "What would you like to do?";
           print_string "> ";
           begin 
             match read_line () with
