@@ -39,7 +39,7 @@ let rec remove_blinds_aux lst acc =
 let rec remove_blinds lst =
   remove_blinds_aux lst []
 
-(** [rotate__game_aux lst acc] is the tuple of the last element in [lst] and the 
+(** [rotate_game_aux lst acc] is the tuple of the last element in [lst] and the 
     remaining elements of [lst]. *)
 let rec rotate_game_aux lst acc =
   match lst with
@@ -58,14 +58,18 @@ let rec rotate_first_round lst =
   | h1 :: h2 :: t -> t @ [h1] @ [h2]
   | _ -> failwith "rotating an invalid player list"
 
-let rec cb_lst_aux lst p acc =
+(** [place_last_aux p lst acc] is the tail-recursive implementation of 
+    [place_last p lst]. *)
+let rec place_last_aux lst p acc =
   match lst with
   | [] -> failwith "player is not in the list"
   | h :: [] -> (List.rev acc) @ [h]
-  | h :: t -> if name h = name p then t @ (List.rev acc) @ [h] else cb_lst_aux t p (h :: acc)
+  | h :: t -> if name h = name p then t @ (List.rev acc) @ [h] else place_last_aux t p (h :: acc)
 
-let rec cb_lst p lst =
-  cb_lst_aux lst p []
+(** [place_last p lst] is [lst] with [p] placed at the end, 
+    while perserving order. *)
+let rec place_last p lst =
+  place_last_aux lst p []
 
 (** [set_blinds_aux lst] is [lst] with the first player given a small blind
     and the second player a big blind in the rotated list. *)
@@ -79,36 +83,42 @@ let set_blinds_aux lst  =
 let set_blinds st =
   change_active_players st (set_blinds_aux (active_players st))
 
-let take_blind_money'' p =
+(** [blinded p] is [p] with the appropriate amount of money removed for 
+    its blind or lackthereof. Small blinds are worth $25, big blinds are $50. *)
+let blinded p =
   match blind p with
   | Small -> change_money p (-25) 
   | Big -> change_money p (-50) 
   | None -> change_money p (0)
 
-let rec take_blind_money' players acc =
+(** [take_blind_money_aux players acc] is [players] with the appropriate
+    amount of money removed from their wallet according to their blind. *)
+let rec take_blind_money_aux players acc =
   match players with 
   | [] -> List.rev acc
-  | h :: t -> take_blind_money' t (take_blind_money'' h :: acc)
+  | h :: t -> take_blind_money_aux t (blinded h :: acc)
 
+(** [take_blind_money st] is [st] with an active player list, current bet, and
+    betting pool reflective of the blinds. *)
 let take_blind_money st =
-  let st' = change_active_players st (take_blind_money' (active_players st) []) in
+  let st' = change_active_players st (take_blind_money_aux (active_players st) []) in
   let st'' = change_current_bet st' 50 in
   change_betting_pool st'' 75 
 
+(** [display_blind_money p] prints out [p]'s blind and value, along with how
+    much money they have left. *)
 let display_blind_money p =
   match blind p with
-  | Small -> print_endline ("\n\n"^name p ^ ", you are small blind, so you automatically bet 25.
-You now only have $" ^ string_of_int (money p) ^ " left.")
-  | Big -> print_endline ("\n\n"^name p ^ ", you are big blind, so you automatically bet 50.
-You now only have $" ^ string_of_int (money p) ^ " left.")
-  | None -> failwith "not a blind" 
+  | Small -> print_endline ("\n\n"^name p ^ ", you are small blind, so you automatically bet $25. You now only have $" ^ string_of_int (money p) ^ " left.")
+  | Big -> print_endline ("\n\n"^name p ^ ", you are big blind, so you automatically bet $50. You now only have $" ^ string_of_int (money p) ^ " left.")
+  | None -> print_string ""
 
-let rec show_blind_info st players=
+(** [show_blind_info players] prints out the blind information of each
+    player in [players]. *)
+let rec show_blind_info players=
   match players with 
   | [] -> ()
-  | h :: t -> if blind h = None then show_blind_info st t 
-    else display_blind_money h; show_blind_info st t
-
+  | h :: t -> display_blind_money h; show_blind_info t 
 
 (** [show_info p st] prints the private information of player [p]*)
 let show_info p st =
@@ -123,25 +133,24 @@ let show_info p st =
 let show_flop st =
   print_endline "We will now reveal the flop.";
   print_endline ("The table currently has the cards: \n" ^ 
-                 (st |> table |> to_string));
-  print_endline "Ready to bet?\n"
+                 (st |> table |> to_string))
 
 (** [show_river st] reveals the table with the newly-added river to all 
     players. *)
 let show_river st =
   print_endline "We will now reveal the river.";
   print_endline ("The table currently has the cards: \n" ^ 
-                 (st |> table |> to_string));
-  print_endline "Ready to bet?\n"
+                 (st |> table |> to_string))
 
 (** [show_turn st] reveals the table with the newly-added turn to all 
     players. *)
 let show_turn st =
   print_endline "We will now reveal the turn.";
   print_endline ("The table currently has the cards: \n" ^ 
-                 (st |> table |> to_string));
-  print_endline "Ready to bet?\n"
+                 (st |> table |> to_string))
 
+(** [execute_all_in str p st] interprets [p]'s input [str] in the context that a 
+    player has gone all in and returns [st] that reflects as such. *)
 let rec execute_all_in str p st =
   match parse str with
   | Quit -> 
@@ -201,6 +210,8 @@ let rec execute_all_in str p st =
       | str -> execute_all_in str p st
     end
 
+(** [execute str p st] inteprets [p]'s [str] in the context of a regular betting
+    round and returns an updated [st] which reflects it. *)
 let rec execute str p st =
   match parse str with
   | Quit -> 
@@ -276,20 +287,24 @@ let rec execute str p st =
       | str -> execute str p st
     end
 
+(** [all_no_money players] is true if no player in [players] has money and 
+    false otherwise. *)
 let rec all_no_money players  =
   match players with
   | [] -> true
   | h :: t -> if money h = 0 then all_no_money t else false 
 
+(** [one_no_money players] is true if at least one player has no money and
+    false otherwise. *)
 let rec one_no_money players =
   match players with 
   | [] -> false
   | h :: t -> if money h = 0 then true else one_no_money t
 
-let rec all_in_mode players st =
-  st
-
-and everyone_gets_a_turn players st =
+(** [everyone_gets_a_turn players st] performs a betting round that will
+    terminate if no one decides to raise a bet, and will go to
+    [continued_betting players st] if someone does. *)
+let rec everyone_gets_a_turn players st =
   if all_no_money players || only_one_player st then st 
   (* else if one_no_money players then all_in_mode players st *)
   else
@@ -297,7 +312,7 @@ and everyone_gets_a_turn players st =
       match players with
       | [] -> st
       | h::t -> if money h = 0 then everyone_gets_a_turn t st 
-        else if one_no_money players then all_in_mode players st
+        else if one_no_money players then st
         else
           begin
             print_endline ("\n\n"^(name h)^", press enter when you are alone");
@@ -320,15 +335,17 @@ and everyone_gets_a_turn players st =
                   let act = execute str h st in 
                   match act with
                   | (st', b) -> 
-                    if b then continued_betting (st' |> active_players |> cb_lst h) st' 
+                    if b then continued_betting (st' |> active_players |> place_last h) st' 
                     else betting_aux true t st'
               end
           end
     end
 
+(** [continued_betting players st] performs as many rounds of betting as
+    necessary until all players have called or folded on the current bet. *)
 and continued_betting players st = 
   if all_no_money players || only_one_player st then st
-  else if one_no_money players then all_in_mode players st
+  else if one_no_money players then st
   else
     begin
       match players with
@@ -356,7 +373,7 @@ and continued_betting players st =
                   let act = execute str h st in 
                   match act with
                   | (st', b) -> 
-                    if b then continued_betting (st' |> active_players |> cb_lst h) st' 
+                    if b then continued_betting (st' |> active_players |> place_last h) st' 
                     else betting_aux false t st'
               end
           end
@@ -368,6 +385,8 @@ and continued_betting players st =
 and betting_aux b players st =
   if b then everyone_gets_a_turn players st else continued_betting players st
 
+(** [first_round_betting st] sets up the correct player list rotation and
+    proceeds with the first round of betting. *)
 let first_round_betting st =
   if only_one_player st then st 
   else betting_aux true (st |> active_players |> rotate_first_round) st
@@ -378,6 +397,8 @@ let rec betting st =
   if only_one_player st then st
   else betting_aux true (st |> active_players) st
 
+(** [flop st] draws 3 cards and places them on the table. It prints out the
+    table information to all players. *)
 let flop st = 
   if only_one_player st then st
   else
@@ -385,6 +406,8 @@ let flop st =
     let st' = change_table (change_rem_deck (snd d) st) (fst d) in 
     show_flop st'; st'
 
+(** [turn st] draws 1 card and places it on the table. It prints out the
+    table information to all players. *)
 let turn st = 
   if only_one_player st then st
   else
@@ -392,16 +415,17 @@ let turn st =
     let st' = change_table (change_rem_deck (snd d) st) (fst d) in 
     show_turn st'; st'
 
+(** [river st] draws the final card and places it on the table. It prints out 
+    the table information to all players. *)
 let river st = 
   if only_one_player st then st
   else
     let d = draw_card 1 (rem_deck st) in
     let st' = change_table (change_rem_deck (snd d) st) (fst d) in 
     show_river st'; st'
-let finish st =
-  print_endline "That's all for the demo game folks!";
-  st
 
+(** [show_down_aux st players high acc] is a list of players which have the
+    best hand taking into account cards in the hole and on the table. *)
 let rec show_down_aux st players high acc =
   match players with 
   | [] -> List.rev acc
@@ -410,6 +434,8 @@ let rec show_down_aux st players high acc =
     else if h_value = high then show_down_aux st t high (h :: acc)
     else show_down_aux st t high (acc)
 
+(** names_to_string more_than_one players acc] prints out the names of 
+    [players]. *)
 let rec names_to_string more_than_one players acc =
   match players with 
   | [] -> acc
@@ -423,6 +449,8 @@ let rec names_to_string more_than_one players acc =
     end
 (* | h :: t -> names_to_string t (acc ^ "," ^ name h) *)
 
+(** [split_pot st aps winners won_money acc] is a list of [winners] to reflect
+    the earnings of [winners] and their newly_won [won_money]. *)
 let rec split_pot st aps winners won_money acc =
   match aps with
   | [] -> List.rev acc
@@ -430,10 +458,13 @@ let rec split_pot st aps winners won_money acc =
     then split_pot st t winners won_money ((change_money h won_money) :: acc)
     else split_pot st t winners won_money (h :: acc)
 
+(** [show_win_info st winners won_money aps] is an updated [st] which reflects
+    the winning status of [winners]. *)
 let rec show_win_info st winners won_money aps=
-  print_endline ((names_to_string (List.length winners > 1) winners "") ^ " won the game!"); 
+  print_endline ((names_to_string (List.length winners > 1) winners "") ^ " won this round of poker!"); 
   change_active_players st (split_pot st (st |> active_players) winners won_money [])
 
+(** [show_down st] is the state after comparing all the players' hands to determine the winner(s)*)
 let show_down st =
   if only_one_player st
   then show_win_info st (active_players st) (betting_pool st) (active_players st) 
@@ -444,6 +475,7 @@ let show_down st =
         (active_players st)
     end
 
+(** [player_continuing str] is true if [str] parses to continue and false if [str] parses to quit*)
 let rec player_continuing str =
   match parse str with
   | Quit -> false
@@ -470,6 +502,7 @@ let rec player_continuing str =
       | str -> player_continuing str
     end
 
+(** [quit_or_cont players acc] is the players left at the end of the game who have not quit and have enough money to continue the game*)
 let rec quit_or_cont players acc =
   match players with 
   | [] -> List.rev acc
@@ -488,22 +521,57 @@ let rec quit_or_cont players acc =
       | str -> if player_continuing str then quit_or_cont t (h :: acc)
         else quit_or_cont t acc )
 
+(**[game_over players winner] displays the final win message to [winner] and losing messages to the losing players*)
+let rec game_over players winner =
+  match players with
+  | [] -> print_endline ("\n\n\n\n" ^ winner ^ ", congratulations! YOU WON THE GAME!!");
+  |  h :: t -> 
+    begin
+      let m = money h in
+      if m <= 0 
+      then 
+        begin
+          print_endline ("\n\n" ^ name h ^ ", you are out of money and are now invited to leave the table.");
+          game_over t winner
+        end
+      else if m < 50
+      then 
+        begin
+          print_endline ("\n\n" ^ name h ^ ", you only have " ^ string_of_int (money h) ^". You do not have the $50 necessary to continue playing at this table. You now are invited to leave.");
+          game_over t winner
+        end
+      else 
+        begin
+          game_over t (name h)
+        end
+    end
 
-let rec all_ps_begin_equal_all_ps_end all_ps act_ps =
-  match (all_ps, act_ps) with 
-  | [], [] -> print_endline "WOO all players in beginning and all players at the end are same length and in same order in the beginning"
-  | _, [] -> failwith "more all players in beginnning than all players in the end"
-  | [], _ -> failwith "more all players in end than all players in the beginning"
-  | h1 :: t1, h2 :: t2 -> if name h1 = name h2 then all_ps_begin_equal_all_ps_end t1 t2
-    else failwith "all players in beginning and all players in end are not in the same order"
+(* let rec all_ps_begin_equal_all_ps_end all_ps act_ps =
+   match (all_ps, act_ps) with 
+   | [], [] -> print_endline "WOO all players in beginning and all players at the end are same length and in same order in the beginning"
+   | _, [] -> failwith "more all players in beginnning than all players in the end"
+   | [], _ -> failwith "more all players in end than all players in the beginning"
+   | h1 :: t1, h2 :: t2 -> if name h1 = name h2 then all_ps_begin_equal_all_ps_end t1 t2
+    else failwith "all players in beginning and all players in end are not in the same order" *)
 
+(** [all_but_one_cant_play players acc] is true if only one player can continue playing in the game*)
+let rec all_but_one_cant_play players acc =
+  match players with
+  | [] -> acc = 1
+  | h :: t -> 
+    begin
+      if money h >= 50 then all_but_one_cant_play t (acc + 1)
+      else all_but_one_cant_play t acc
+    end
+
+(** [end_game players st] is [st] updated to reflect the end of the game*)
 let end_game st =
   let st' = remove_all_active_players st (active_players st) in
-  let st'' = change_all_players st' (st' |> all_players 
-  (* |> rotate_game *)
-                                    ) 
-  in
-  quit_or_cont (all_players st'') []
+  change_all_players st' (st' |> all_players) 
+(* |> rotate_game *)
+
+(* in
+   quit_or_cont (all_players st'') [] *)
 
 (* let rec all_ps_equal_act_ps all_ps act_ps =
    match (all_ps, act_ps) with 
@@ -514,7 +582,7 @@ let end_game st =
     else failwith "all players and active players are not in the same order" *)
 
 
-
+(** [next_game players] is the state of the next game with [players] in the game*)
 let rec next_game players = 
   if List.length players <= 1 then ()
   else players |> rotate_game |> new_round |> start_game
@@ -522,18 +590,25 @@ let rec next_game players =
 (** [start_game st] plays a game starting in [st]. *)
 and start_game st =
   let st' = st |> set_blinds |> take_blind_money in
-  show_blind_info st' (active_players st'); 
-  st' 
-  |> first_round_betting 
-  |> flop 
-  |> betting
-  |> turn 
-  |> betting 
-  |> river 
-  |> betting
-  |> show_down  
-  |> end_game
-  |> next_game
+  show_blind_info (active_players st'); 
+  let st_at_end = st' 
+                  |> first_round_betting 
+                  |> flop 
+                  |> betting
+                  |> turn 
+                  |> betting 
+                  |> river 
+                  |> betting
+                  |> show_down  
+                  |> end_game
+  in 
+  if all_but_one_cant_play (all_players st_at_end) 0
+  then game_over (all_players st_at_end) ""
+  else 
+    begin
+      quit_or_cont (all_players st_at_end) [] 
+      |> next_game
+    end
 
 (** [main ()] prompts for the game to play, then starts it. *)
 let main () =
