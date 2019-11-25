@@ -79,10 +79,12 @@ let player2 = create_player "B"
 let player3 = create_player "C"
 let player4 = change_money (create_player "D") (-50)
 
-let player_lst = [player1; player2; player3; player4]
+let player_lst1 = [player1; player2; player3]
+let player_lst2 = [player1; player2; player3; player4]
 
-let test_state1 = new_round player_lst
-let test_state2 = change_current_bet (change_max_bet test_state1 500) 100
+let test_state1 = new_round player_lst1
+let test_state2 = change_current_bet 
+    (change_max_bet (new_round player_lst2) 500) 100
 
 let rec get_money p lst =
   match lst with
@@ -99,22 +101,22 @@ let rec player_names  acc lst=
   | [] -> List.rev acc
   | h :: t -> player_names (name h :: acc) t
 
-let state_round__v_tests = [
+let state_round_v_tests = [
 
   "successfully removes a player from active list when folding" >:: (fun _ -> 
-      assert_equal [name player1; name player3; name player4]
+      assert_equal [name player1; name player3]
         (fold test_state1 player2 |> active_players |> player_names []));
   "doesn't remove remove a player from all players when folding" >:: (fun _ -> 
-      assert_equal [player1; player2; player3; player4] 
+      assert_equal [player1; player2; player3] 
         (fold test_state1 player2 |> all_players)); 
 
-  (* "all_in removes all of the player's money" >:: (fun _ -> assert_equal 0
+  "all_in removes all of the player's money" >:: (fun _ -> assert_equal 0
                                                      (all_in test_state1 player1 |> active_players |> get_money player1)~printer:string_of_int); 
-     "all_in correctly increases the better pool" >:: (fun _ -> assert_equal 5000
+  "all_in correctly increases the better pool" >:: (fun _ -> assert_equal 5000
                                                        (all_in test_state1 player1 |> betting_pool)~printer:string_of_int);
-     "all_in correctly increase how much the player has betted" >:: (fun _ -> 
+  "all_in correctly increase how much the player has betted" >:: (fun _ -> 
       assert_equal 5000
-        (all_in test_state1 player1 |> active_players |> get_betted player1)~printer:string_of_int); *)
+        (all_in test_state1 player1 |> active_players |> get_betted player1)~printer:string_of_int);
   "cannot all_in more than the max bet" >:: (fun _ -> assert_raises InvalidBet
                                                 (fun _ -> all_in test_state2 player1));
 
@@ -135,5 +137,5 @@ let tests =
   List.flatten [
     deck_tests;
     command_tests;
-    state_round__v_tests
+    state_round_v_tests
   ]
