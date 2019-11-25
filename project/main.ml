@@ -39,18 +39,11 @@ let rec remove_blinds_aux lst acc =
 let rec remove_blinds lst =
   remove_blinds_aux lst []
 
-(** [rotate_game_aux lst acc] is the tuple of the last element in [lst] and the 
-    remaining elements of [lst]. *)
-let rec rotate_game_aux lst acc =
-  match lst with
-  | h :: [] -> (h, List.rev acc)
-  | h :: t -> rotate_game_aux t (h :: acc)
-  | [] -> failwith "no last element in an empty list"
-
-(** [rotate_game lst] is a list that is logically shifted right. *)
-let rotate_game lst =
-  match rotate_game_aux (remove_blinds lst) [] with
-  | (l, rem) -> [l] @ rem
+(** [rotate lst] is [lst] rotated left once. *)
+let rotate lst =
+  match remove_blinds lst with
+  | [] -> failwith "cannot rotate an empty list"
+  | h :: t -> t @ [h]
 
 (** [rotate_first_round lst] is [lst] logically shifted left twice. *)
 let rec rotate_first_round lst =
@@ -109,8 +102,8 @@ let take_blind_money st =
     much money they have left. *)
 let display_blind_money p =
   match blind p with
-  | Small -> print_endline ("\n\n"^name p ^ ", you are small blind, so you automatically bet $25. You now only have $" ^ string_of_int (money p) ^ " left.")
-  | Big -> print_endline ("\n\n"^name p ^ ", you are big blind, so you automatically bet $50. You now only have $" ^ string_of_int (money p) ^ " left.")
+  | Small -> print_endline ("\n\n"^name p ^ ", you are small blind, so you automatically bet $25.\nYou now only have $" ^ string_of_int (money p) ^ " left.")
+  | Big -> print_endline ("\n\n"^name p ^ ", you are big blind, so you automatically bet $50.\nYou now only have $" ^ string_of_int (money p) ^ " left.")
   | None -> print_string ""
 
 (** [show_blind_info players] prints out the blind information of each
@@ -517,6 +510,7 @@ let rec quit_or_cont players acc =
           quit_or_cont t acc)
     else (
       print_endline "Would you like to quit or continue?";
+      print_string "> ";
       match read_line () with
       | str -> if player_continuing str then quit_or_cont t (h :: acc)
         else quit_or_cont t acc )
@@ -582,10 +576,10 @@ let end_game st =
     else failwith "all players and active players are not in the same order" *)
 
 
-(** [next_game players] is the state of the next game with [players] in the game*)
+(** [next_game players] is the state of the next game with [players] in the game *)
 let rec next_game players = 
   if List.length players <= 1 then ()
-  else players |> rotate_game |> new_round |> start_game
+  else players |> rotate |> new_round |> start_game
 
 (** [start_game st] plays a game starting in [st]. *)
 and start_game st =
