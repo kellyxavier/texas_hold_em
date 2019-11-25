@@ -1,4 +1,5 @@
 open Deck
+open Command
 
 type s =
   | Betting
@@ -18,12 +19,13 @@ type player =
     money : int;
     status : s;
     blind : b;
-    money_betted : int
+    money_betted : int;
+    last_move : command
   }
 
 let create_player n = 
   {name = n; hand = empty; money = 5000; status = Betting; blind = None;
-   money_betted = 0}
+   money_betted = 0; last_move = Default}
 
 let name p =
   p.name
@@ -60,3 +62,12 @@ let change_money_betted p mb =
 
 let reset_money_betted p =
   {p with money_betted = 0}
+
+let last_move p =
+  p.last_move
+
+let change_last_move p c =
+  {p with last_move = c}
+
+let reset_last_move p =
+  {p with last_move = Default}

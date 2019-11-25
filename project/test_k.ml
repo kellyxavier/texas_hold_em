@@ -196,8 +196,6 @@ let state_tests =
     "removes a player from all players when quit" >:: (fun _ -> 
         assert_equal [name p1; name p3] 
           (fold test_state_p2_quit player2 |> all_players |> player_names []));
-    "state is exact same when player checks" >:: (fun _ -> 
-        assert_equal test_state1 (test_state_p1_check)); 
     "check when current bet not equal to money betted should raise InvalidBet" 
     >:: (fun _ -> 
         assert_raises (InvalidBet) (fun () -> check test_state_cb_20 p2 ));

@@ -51,7 +51,7 @@ module type StateSig = sig
   val max_bet : state -> int
   val change_max_bet : state -> int -> state
   val find_max_bet : state -> int
-  val update_player_money : player list -> player -> int -> player list 
+  val update_player_money : player list -> player -> int -> command -> player list 
     -> player list
   val quit : state -> player -> state
   val fold : state -> player -> state
@@ -66,6 +66,7 @@ module StateCheck : StateSig = State
 module type CommandSig = sig 
   type amount = int
   type command = 
+    | Default
     | Quit
     | Continue
     | Fold

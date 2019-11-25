@@ -1,4 +1,5 @@
 open Deck
+open Command
 
 (** 
     Representation of a player in the game.
@@ -60,4 +61,14 @@ val money_betted : player -> int
    player [p] currently has betted. *)
 val change_money_betted : player -> int -> player
 
+(** [reset_money_betted p] sets [p]'s money back to 0. *)
 val reset_money_betted : player -> player
+
+(**[last_move p] is the last move player [p] made*)
+val last_move : player -> command
+
+(**[change_last_move p str] is the player [p] with [str] as its last move. *)
+val change_last_move : player -> command -> player
+
+(** [reset_last_move p] resets [p]'s last move to Default *)
+val reset_last_move : player -> player

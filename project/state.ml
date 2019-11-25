@@ -133,38 +133,50 @@ let rem_deck st =
 let change_rem_deck rd st =
   {st with rem_deck = rd}
 
-let rec update_player_money lst p m acc =
+let rec update_player_last_move lst p move acc =
+  match lst with 
+  | [] -> List.rev acc
+  | h :: t -> if name p = name h 
+    then let updated_player = change_last_move p move in update_player_last_move t p move (updated_player :: acc)
+    else update_player_last_move t p move (h :: acc)
+
+let rec update_player_money lst p m move acc =
   match lst with 
   | [] -> List.rev acc
   | h :: t -> if name p = name h then let updated_player = change_money p m 
-      in 
+      in let updated_player' = change_last_move updated_player move in
       (* print_endline (name p ^ "has betted " ^(string_of_int (money_betted updated_player) ^ " after going all in"));  *)
-      update_player_money t p m (updated_player :: acc)
-    else update_player_money t p m (h :: acc)
+      update_player_money t p m move (updated_player' :: acc)
+    else update_player_money t p m move (h :: acc)
 
 let quit st p =
-  let s' = remove_active_player st p in 
-  {s' with all_players = remove_player (s'.all_players) p []}
+  let s' = remove_active_player st p
+  in let s'' = {s' with all_players = remove_player (s'.all_players) p []}
+  in let all_players' = update_player_last_move (all_players s'') p Quit []
+  in {s'' with all_players = all_players'} 
 
 let fold st p =
-  remove_active_player st p
+  let s' = remove_active_player st p 
+  in let active_players' = update_player_last_move (s'.active_players) p Fold []
+  in {s' with active_players = active_players'} 
 
 let check st p =
-  if st.current_bet = money_betted p then st else raise InvalidBet
+  if st.current_bet = money_betted p then 
+    let active_players' = update_player_last_move (st.active_players) p Check []
+    in {st with active_players = active_players'} 
+  else raise InvalidBet
 
 let call st p =
   let diff = (st.current_bet - money_betted p) 
-  in let active_players' = update_player_money st.active_players p (-diff) []
+  in let active_players' = update_player_money st.active_players p (-diff) Call []
   in {st with active_players = active_players'; 
               betting_pool = st.betting_pool + diff}
-
-
 
 let raise r st p =
   let m = (st.current_bet - money_betted p + r) in
   if max_bet st >=  st.current_bet + r && r >= 0
   then 
-    let active_players' = update_player_money st.active_players p (-m) []
+    let active_players' = update_player_money st.active_players p (-m) (Raise r) []
     in  
     {st with active_players = active_players';
              betting_pool = st.betting_pool + m; 

@@ -106,7 +106,7 @@ let state_round_v_tests = [
   "successfully removes a player from active list when folding" >:: (fun _ -> 
       assert_equal [name player1; name player3]
         (fold test_state1 player2 |> active_players |> player_names []));
-  "doesn't remove remove a player from all players when folding" >:: (fun _ -> 
+  "doesn't remove a player from all players when folding" >:: (fun _ -> 
       assert_equal [player1; player2; player3] 
         (fold test_state1 player2 |> all_players)); 
 

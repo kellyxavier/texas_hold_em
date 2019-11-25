@@ -1,5 +1,6 @@
 open Deck
 open Player
+open Command
 
 (** 
    Representation of dynamic game state.
@@ -81,7 +82,7 @@ val change_rem_deck : deck -> state -> state
 
 (** [update_player_money lst p m acc] is the list of players [lst] with the 
     money of player [p] increased by [m]. *)
-val update_player_money : player list -> player -> int -> player list 
+val update_player_money : player list -> player -> int -> command -> player list 
   -> player list
 
 (**[quit st p] is state [st] with active_players without player [p]. *)

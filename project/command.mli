@@ -9,6 +9,7 @@ type amount = int
 (** The type [command] represents a player command that is decomposed
     into a verb and possibly an int. *)
 type command = 
+  | Default
   | Quit
   | Continue
   | Fold
@@ -47,7 +48,6 @@ exception Malformed
     or if the verb is "go" and there is no amount following the command.*)
 val parse : string -> command
 
-(* END DO NOT CHANGE
- **********************************************************************)
-
-(* You are free to add more code here. *)
+(** [move_to_string m] returns m as a string in the past tense. Default is 
+    "Has not made a move yet" *)
+val move_to_string : command -> string

@@ -113,8 +113,16 @@ let rec show_blind_info players=
   | [] -> ()
   | h :: t -> display_blind_money h; show_blind_info t 
 
+let rec print_prev_moves players =
+  match players with
+  | [] -> ()
+  | h :: t -> print_endline (name h ^ ": " ^ move_to_string (last_move h));
+    print_prev_moves t
+
 (** [show_info p st] prints the private information of player [p]*)
 let show_info p st =
+  print_endline ("These are the last moves of each player currently at the table:");
+  print_prev_moves (active_players st);
   let money = money p in let hand = hand p |> to_string in 
   print_endline ("You have $" ^ (string_of_int money) ^ " and your cards are\n" ^ hand);
   let t = st |> table |> to_string in
@@ -202,6 +210,7 @@ let rec execute_all_in str p st =
       match read_line () with
       | str -> execute_all_in str p st
     end
+  | Default -> failwith "player entered command should never parse to Default"
 
 (** [execute str p st] inteprets [p]'s [str] in the context of a regular betting
     round and returns an updated [st] which reflects it. *)
@@ -279,6 +288,7 @@ let rec execute str p st =
       match read_line () with
       | str -> execute str p st
     end
+  | Default -> failwith "player entered command should never parse to Default"
 
 (** [all_no_money players] is true if no player in [players] has money and 
     false otherwise. *)
@@ -397,7 +407,8 @@ let flop st =
   else
     let d = draw_card 3 (rem_deck st) in
     let st' = change_table (change_rem_deck (snd d) st) (fst d) in 
-    show_flop st'; st'
+    let st'' = change_active_players st' (List.map (fun p -> reset_last_move p) (active_players st')) in
+    show_flop st''; st''
 
 (** [turn st] draws 1 card and places it on the table. It prints out the
     table information to all players. *)
@@ -406,7 +417,8 @@ let turn st =
   else
     let d = draw_card 1 (rem_deck st) in
     let st' = change_table (change_rem_deck (snd d) st) (fst d) in 
-    show_turn st'; st'
+    let st'' = change_active_players st' (List.map (fun p -> reset_last_move p) (active_players st')) in
+    show_turn st''; st''
 
 (** [river st] draws the final card and places it on the table. It prints out 
     the table information to all players. *)
@@ -414,8 +426,9 @@ let river st =
   if only_one_player st then st
   else
     let d = draw_card 1 (rem_deck st) in
-    let st' = change_table (change_rem_deck (snd d) st) (fst d) in 
-    show_river st'; st'
+    let st' = change_table (change_rem_deck (snd d) st) (fst d) in
+    let st'' = change_active_players st' (List.map (fun p -> reset_last_move p) (active_players st')) in 
+    show_river st''; st''
 
 (** [show_down_aux st players high acc] is a list of players which have the
     best hand taking into account cards in the hole and on the table. *)

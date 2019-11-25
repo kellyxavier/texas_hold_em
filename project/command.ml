@@ -1,6 +1,8 @@
+
 type amount = int
 
 type command = 
+  | Default
   | Quit
   | Continue
   | Fold
@@ -31,3 +33,14 @@ let parse str =
       | i -> Raise i 
       | exception _ -> raise Malformed
     else raise Malformed
+
+let move_to_string m =
+  match m with
+  | Default -> "Has not made a move yet"
+  | Quit -> "Quit"
+  | Continue -> "Continue"
+  | Fold -> "Folded"
+  | Call -> "Called"
+  | Check -> "Checked"
+  | Allin -> "Went all in"
+  | Raise i -> "Raised " ^ string_of_int i
