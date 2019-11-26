@@ -22,9 +22,12 @@ type b =
 type player
 
 (**[create_player n] is a player with name n, no hand, starting money of 5000,
-   and status Active*)
+   and status Active. This is not an AI player*)
 val create_player : string -> player
 
+(**[create_ai_player] is an AI player. They start with all the same fields as
+   a human player, with a name of "The AI."*)
+val create_ai_player : player
 
 (**[name p] is the name of player [p]. *)
 val name : player -> string
@@ -72,3 +75,6 @@ val change_last_move : player -> command -> player
 
 (** [reset_last_move p] resets [p]'s last move to Default *)
 val reset_last_move : player -> player
+
+(** [is_ai p] is the AI status of [p]. *)
+val is_ai : player -> bool

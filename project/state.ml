@@ -30,11 +30,12 @@ let rec min_money min players =
 
 
 let new_round lst=
-  if List.length lst < 2  || List.length lst > 10 then raise InvalidPlayerList 
+  if List.length lst < 1  || List.length lst > 10 then raise InvalidPlayerList 
   else 
-    let deal = deal_players (shuffle ()) lst [] in
-    {all_players = lst; active_players = fst deal; 
-     table = empty; betting_pool = 0; current_bet = 0; max_bet = lst 
+    let lst' = List.map (fun p -> reset_last_move p) lst in
+    let deal = deal_players (shuffle ()) lst' [] in
+    {all_players = lst'; active_players = fst deal; 
+     table = empty; betting_pool = 0; current_bet = 0; max_bet = lst' 
                                                                  |> min_money 
                                                                    max_int;
      rem_deck = snd deal}

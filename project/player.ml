@@ -20,12 +20,17 @@ type player =
     status : s;
     blind : b;
     money_betted : int;
-    last_move : command
+    last_move : command;
+    is_ai : bool
   }
 
 let create_player n = 
   {name = n; hand = empty; money = 5000; status = Betting; blind = None;
-   money_betted = 0; last_move = Default}
+   money_betted = 0; last_move = Default; is_ai = false}
+
+let create_ai_player = 
+  {name = "The AI"; hand = empty; money = 5000; status = Betting; blind = None;
+   money_betted = 0; last_move = Default; is_ai = true}
 
 let name p =
   p.name
@@ -71,3 +76,6 @@ let change_last_move p c =
 
 let reset_last_move p =
   {p with last_move = Default}
+
+let is_ai p =
+  p.is_ai

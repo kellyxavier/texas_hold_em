@@ -62,8 +62,7 @@ let player11 = create_player "josh"
 let invalid_player_list_1 = [player1; player2; player3; player4; player5; 
                              player6; player7; player8; player9; player10; 
                              player11]
-let invalid_player_list_2 = [player1]
-let invalid_player_list_3 = []
+let invalid_player_list_2 = []
 let valid_player_list_1 = [player1; player2; player3; player4]
 let valid_player_list_2 = [player1; player2; player3; player4; player5; 
                            player6; player7; player8; player9; player10]
@@ -108,16 +107,11 @@ let state_tests =
     (fun _ -> 
        assert_raises (InvalidPlayerList) (fun () -> 
            new_round invalid_player_list_1));
-    "new_round with input of player list with length strictly 
-       less than 2 should raise InvalidPlayerList" >::
-    (fun _ -> 
-       assert_raises (InvalidPlayerList) (fun () -> 
-           new_round invalid_player_list_2));
     "new_round with input of empty player list should raise 
        InvalidPlayerList" >::
     (fun _ -> 
        assert_raises (InvalidPlayerList) (fun () -> 
-           new_round invalid_player_list_3));
+           new_round invalid_player_list_2));
     "new round with input of list of 4 players results in state with 
     4 players" >:: (fun _ -> 
         assert_equal 4 (valid_player_list_1 |> new_round |> active_players 

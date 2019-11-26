@@ -314,9 +314,19 @@ let rec everyone_gets_a_turn players st =
     begin
       match players with
       | [] -> st
-      | h::t -> if money h = 0 then everyone_gets_a_turn t st 
+      | h::t -> 
+        if money h = 0 then everyone_gets_a_turn t st 
         else if one_no_money players then st
-        else
+        else if is_ai h 
+        then 
+          begin
+            let act = execute "call" h st in 
+            match act with
+            | (st', raised) -> 
+              if raised then continued_betting (st' |> active_players |> place_last h) st' 
+              else betting_aux true t st'
+          end
+        else 
           begin
             print_endline ("\n\n"^(name h)^", press enter when you are alone");
             print_string "> ";
@@ -332,15 +342,13 @@ let rec everyone_gets_a_turn players st =
                 print_endline ("Your options are 'fold', 'call', 'allin', 'raise x', \nwhere x is a positive integer.\n");
               print_endline "What would you like to do?";         
               print_string "> ";
-              begin 
-                match read_line () with
-                | str -> ANSITerminal.erase Screen; 
-                  let act = execute str h st in 
-                  match act with
-                  | (st', b) -> 
-                    if b then continued_betting (st' |> active_players |> place_last h) st' 
-                    else betting_aux true t st'
-              end
+              match read_line () with
+              | str -> ANSITerminal.erase Screen; 
+                let act = execute str h st in 
+                match act with
+                | (st', raised) -> 
+                  if raised then continued_betting (st' |> active_players |> place_last h) st' 
+                  else betting_aux true t st'
           end
     end
 
@@ -356,28 +364,40 @@ and continued_betting players st =
       | h :: [] -> st
       | h::t -> if money h = 0 then continued_betting t st else 
           begin
-            print_endline ("\n\n"^(name h)^", press enter when you are alone");
-            print_string "> ";
-            match read_line () with 
-            | _ -> 
-              show_info h st;
-              let need_to_stay_in =  current_bet st - money_betted h in
-              print_endline ("You must bet at least $" ^ string_of_int (current_bet st - money_betted h) ^ " to stay in the game.");
-              if need_to_stay_in = 0 
-              then
-                print_endline ("Your options are 'fold', 'check', 'call', 'allin', 'raise x', \n where x is a positive integer.")
-              else
-                print_endline ("Your options are 'fold', 'call', 'allin', 'raise x', \n where x is a positive integer.");
-              print_endline "What would you like to do?";
-              print_string "> ";
-              begin 
-                match read_line () with
-                | str -> ANSITerminal.erase Screen; 
-                  let act = execute str h st in 
-                  match act with
-                  | (st', b) -> 
-                    if b then continued_betting (st' |> active_players |> place_last h) st' 
-                    else betting_aux false t st'
+            if is_ai h 
+            then 
+              begin
+                let act = execute "call" h st in 
+                match act with
+                | (st', raised) -> 
+                  if raised then continued_betting (st' |> active_players |> place_last h) st' 
+                  else betting_aux false t st'
+              end
+            else 
+              begin
+                print_endline ("\n\n"^(name h)^", press enter when you are alone");
+                print_string "> ";
+                match read_line () with 
+                | _ -> 
+                  show_info h st;
+                  let need_to_stay_in =  current_bet st - money_betted h in
+                  print_endline ("You must bet at least $" ^ string_of_int (current_bet st - money_betted h) ^ " to stay in the game.");
+                  if need_to_stay_in = 0 
+                  then
+                    print_endline ("Your options are 'fold', 'check', 'call', 'allin', 'raise x', \n where x is a positive integer.")
+                  else
+                    print_endline ("Your options are 'fold', 'call', 'allin', 'raise x', \n where x is a positive integer.");
+                  print_endline "What would you like to do?";
+                  print_string "> ";
+                  begin 
+                    match read_line () with
+                    | str -> ANSITerminal.erase Screen; 
+                      let act = execute str h st in 
+                      match act with
+                      | (st', raised) -> 
+                        if raised then continued_betting (st' |> active_players |> place_last h) st' 
+                        else betting_aux false t st'
+                  end
               end
           end
 
@@ -391,7 +411,7 @@ and betting_aux b players st =
 (** [first_round_betting st] sets up the correct player list rotation and
     proceeds with the first round of betting. *)
 let first_round_betting st =
-  if only_one_player st then st 
+  if only_one_player st then st
   else betting_aux true (st |> active_players |> rotate_first_round) st
 
 (** [betting st] prints the private information of each players to 
@@ -522,11 +542,13 @@ let rec quit_or_cont players acc =
     then (print_endline "You do not have the $50 necessary to continue playing at this table. You now are invited to leave."; 
           quit_or_cont t acc)
     else (
-      print_endline "Would you like to quit or continue?";
-      print_string "> ";
-      match read_line () with
-      | str -> if player_continuing str then quit_or_cont t (h :: acc)
-        else quit_or_cont t acc )
+      if is_ai h then quit_or_cont t (h :: acc) 
+      else (
+        print_endline "Would you like to quit or continue?";
+        print_string "> ";
+        match read_line () with
+        | str -> if player_continuing str then quit_or_cont t (h :: acc)
+          else quit_or_cont t acc ))
 
 (**[game_over players winner] displays the final win message to [winner] and losing messages to the losing players*)
 let rec game_over players winner =
@@ -588,6 +610,11 @@ let end_game st =
    | h1 :: t1, h2 :: t2 -> if name h1 = name h2 then all_ps_equal_act_ps t1 t2
     else failwith "all players and active players are not in the same order" *)
 
+(** [add_ai st] is an updated [st] with an AI player in the last position of
+    both player lists. *)
+let add_ai st =
+  let st' = change_active_players st (active_players st @ [create_ai_player]) in
+  change_all_players st' (all_players st' @ [create_ai_player])
 
 (** [next_game players] is the state of the next game with [players] in the game *)
 let rec next_game players = 
@@ -596,9 +623,10 @@ let rec next_game players =
 
 (** [start_game st] plays a game starting in [st]. *)
 and start_game st =
-  let st' = st |> set_blinds |> take_blind_money in
-  show_blind_info (active_players st'); 
-  let st_at_end = st' 
+  let st' = if List.length (active_players st) = 1 then add_ai st else st in
+  let st'' = st' |> set_blinds |> take_blind_money in
+  show_blind_info (active_players st''); 
+  let st_at_end = st'' 
                   |> first_round_betting 
                   |> flop 
                   |> betting
@@ -622,12 +650,12 @@ let main () =
   ANSITerminal.erase Screen;
   (print_string
      "\n\nWelcome to Texas Hold 'Em.\n");
-  print_endline "Please enter the number of players in your game.\nNote there may only be 2-10 players in your game";
+  print_endline "Please enter the number of players in your game.\nNote there may only be up to 10 players in your game";
   print_string  "> ";
   match int_of_string(read_line ()) with
   | exception End_of_file -> ()
   | exception e -> print_endline "You must enter a number.\nStart the game engine again to play"
-  | x -> if (x > 10 || x <2 ) then print_endline "You must enter a number between 2 and 10. \n Start the game engine again to play";
+  | x -> if (x > 10 || x <1 ) then print_endline "You must enter a number between 1 and 10. \n Start the game engine again to play";
     start_game (create_player_list x [] |> new_round)
 
 let () = main ()
