@@ -222,9 +222,9 @@ let rec try_allin_read_again p st =
 let rec execute_all_in str p st =
   match parse str with
   | Quit -> 
-    begin (*
+    begin 
       quit_error;
-      try_allin_read_again p st*)
+      (*try_allin_read_again p st*)
       match read_line () with
       | str -> execute_all_in str p st
     end
@@ -359,7 +359,6 @@ let rec one_no_money players =
     [continued_betting players st] if someone does. *)
 let rec everyone_gets_a_turn players st =
   if all_no_money players || only_one_player st then st 
-  (* else if one_no_money players then all_in_mode players st *)
   else
     begin
       match players with
@@ -523,7 +522,6 @@ let rec names_to_string more_than_one players acc =
       then names_to_string more_than_one ([]) (acc ^ "and " ^ name h) 
       else names_to_string more_than_one ([]) (name h)
     end
-(* | h :: t -> names_to_string t (acc ^ "," ^ name h) *)
 
 (** [split_pot st aps winners won_money acc] is a list of [winners] to reflect
     the earnings of [winners] and their newly_won [won_money]. *)
@@ -625,14 +623,6 @@ let rec game_over players winner =
         end
     end
 
-(* let rec all_ps_begin_equal_all_ps_end all_ps act_ps =
-   match (all_ps, act_ps) with 
-   | [], [] -> print_endline "WOO all players in beginning and all players at the end are same length and in same order in the beginning"
-   | _, [] -> failwith "more all players in beginnning than all players in the end"
-   | [], _ -> failwith "more all players in end than all players in the beginning"
-   | h1 :: t1, h2 :: t2 -> if name h1 = name h2 then all_ps_begin_equal_all_ps_end t1 t2
-    else failwith "all players in beginning and all players in end are not in the same order" *)
-
 (** [all_but_one_cant_play players acc] is true if only one player can continue playing in the game*)
 let rec all_but_one_cant_play players acc =
   match players with
@@ -647,18 +637,6 @@ let rec all_but_one_cant_play players acc =
 let end_game st =
   let st' = remove_all_active_players st (active_players st) in
   change_all_players st' (st' |> all_players) 
-(* |> rotate_game *)
-
-(* in
-   quit_or_cont (all_players st'') [] *)
-
-(* let rec all_ps_equal_act_ps all_ps act_ps =
-   match (all_ps, act_ps) with 
-   | [], [] -> print_endline "WOO active players and all players same length and in same order in the beginning"
-   | _, [] -> failwith "more all players than active players in the begining"
-   | [], _ -> failwith "more active players than all players in the begining"
-   | h1 :: t1, h2 :: t2 -> if name h1 = name h2 then all_ps_equal_act_ps t1 t2
-    else failwith "all players and active players are not in the same order" *)
 
 (** [add_ai st] is an updated [st] with an AI player in the last position of
     both player lists. *)
@@ -717,5 +695,4 @@ let main () =
   (print_string "\n\nWelcome to Texas Hold 'Em!"); get_players () 
 
 let () = main ()
-
 
