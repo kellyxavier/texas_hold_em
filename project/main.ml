@@ -5,24 +5,36 @@ open Command
 open Hands
 open Rank_hand
 
-(** [create_player_list x acc] is the player list consisting of [x] players*)
+(** [get_valid_name lst i] is a name prompted by the [i]th user that is neither 
+    empty nor already in [lst]. *)
+let rec get_valid_name lst i =
+  print_endline ("Player " ^ (string_of_int i) ^
+    ": enter your name\nNote: your name must be unique.");
+  print_string "> ";
+  match read_line () with
+  | "" ->
+    begin 
+      print_endline "You cannot have an empty name. Please try again.";
+      get_valid_name lst i
+    end
+  | n -> 
+    if List.mem n lst then 
+      begin
+        print_endline "You cannot choose a name that someone has already selected. Please try again.";
+        get_valid_name lst i
+      end
+    else n
+
+(** [create_player_list x acc] is the player list built off of [acc] 
+    consisting of [x] players. *)
 let rec create_player_list x acc =
   if x = 0 then List.rev acc
-  else (print_endline ("Player "^(string_of_int((List.length acc)+1))^ ": enter your name\nNote: your name must be unique.");
-        print_string "> ";
-        match read_line () with
-        | "" ->
-          begin 
-            print_endline "You cannot have an empty name. Please try again.";
-            create_player_list x acc
-          end
-        | n -> 
-          if List.mem n ((List.map (fun p -> name p)) acc) then 
-            begin
-              print_endline "You cannot choose a name that someone has already selected. Please try again";
-              create_player_list x acc
-            end
-          else create_player_list (x-1) (create_player n::acc))
+  else create_player_list (x - 1) (
+    (List.length acc 
+    |> (+) 1 
+    |> get_valid_name (List.map (fun p -> name p) acc) 
+    |> create_player
+    ) :: acc)
 
 (** [more_than_one_player st] is true if there's more than one active player
     in the game and false otherwise. *)
@@ -57,7 +69,10 @@ let rec place_last_aux lst p acc =
   match lst with
   | [] -> failwith "player is not in the list"
   | h :: [] -> (List.rev acc) @ [h]
-  | h :: t -> if name h = name p then t @ (List.rev acc) @ [h] else place_last_aux t p (h :: acc)
+  | h :: t -> 
+    if name h = name p 
+    then t @ (List.rev acc) @ [h] 
+    else place_last_aux t p (h :: acc)
 
 (** [place_last p lst] is [lst] with [p] placed at the end, 
     while perserving order. *)
@@ -94,7 +109,8 @@ let rec take_blind_money_aux players acc =
 (** [take_blind_money st] is [st] with an active player list, current bet, and
     betting pool reflective of the blinds. *)
 let take_blind_money st =
-  let st' = change_active_players st (take_blind_money_aux (active_players st) []) in
+  let st' = 
+    change_active_players st (take_blind_money_aux (active_players st) []) in
   let st'' = change_current_bet st' 50 in
   change_betting_pool st'' 75 
 
@@ -102,8 +118,12 @@ let take_blind_money st =
     much money they have left. *)
 let display_blind_money p =
   match blind p with
-  | Small -> print_endline ("\n\n"^name p ^ ", you are small blind, so you automatically bet $25.\nYou now only have $" ^ string_of_int (money p) ^ " left.")
-  | Big -> print_endline ("\n\n"^name p ^ ", you are big blind, so you automatically bet $50.\nYou now only have $" ^ string_of_int (money p) ^ " left.")
+  | Small -> print_endline ("\n\n" ^ name p ^ 
+    ", you are small blind, so you automatically bet $25.\nYou now only have $" 
+    ^ string_of_int (money p) ^ " left.")
+  | Big -> print_endline ("\n\n" ^ name p ^ 
+    ", you are big blind, so you automatically bet $50.\nYou now only have $" 
+    ^ string_of_int (money p) ^ " left.")
   | None -> print_string ""
 
 (** [show_blind_info players] prints out the blind information of each
@@ -121,12 +141,14 @@ let rec print_prev_moves players =
 
 (** [show_info p st] prints the private information of player [p]*)
 let show_info p st =
-  print_endline ("These are the last moves of each player currently at the table:");
-  print_prev_moves (active_players st);
   let money = money p in let hand = hand p |> to_string in 
-  print_endline ("You have $" ^ (string_of_int money) ^ " and your cards are\n" ^ hand);
   let t = st |> table |> to_string in
-  if t = "" then  print_endline "There are no cards currently on the table"
+  print_endline 
+    ("These are the last moves of each player currently at the table:");
+  print_prev_moves (active_players st);
+  print_endline 
+    ("\nYou have $" ^ (string_of_int money) ^ " and your cards are:\n" ^ hand);
+  if t = "" then print_endline "There are no cards currently on the table"
   else print_endline ("The table currently has the cards: \n" ^ t)
 
 (** [show_flop st] reveals the table with the newly-added flop to all 
@@ -150,21 +172,65 @@ let show_turn st =
   print_endline ("The table currently has the cards: \n" ^ 
                  (st |> table |> to_string))
 
+(* Valeria thinks these message functions could maybe go someplace else -
+   command maybe? *)
+
+(** [quit_error] is the message for when a player tries to quit in the
+    middle of a game. *)
+let quit_error =
+  print_endline "You cannot quit in the middle of the game. Please try again!";
+  print_string "> "
+
+(** [continue_error] is the message for when a player tries to continue
+    instead of specifying a betting action. *)
+let continue_error =
+  print_endline "Please enter a betting action.";
+  print_string "> "
+
+(** [check_error] is the message for when a player tries to check when they
+    haven't betted enough. *)
+let check_error =
+  print_endline "You cannot check when the current bet is not 0. Please try again!";
+  print_string "> "
+
+(** [allin_correction] is the message that explicitly states which actions may
+    be taken when a player has gone all in. *)
+let allin_correction =
+  print_endline "Please either quit, call, or check";
+  print_string "> "
+
+(** [empty_command_message] is the message for when a player enters and empty
+    command. *)
+let empty_command_message =
+  print_endline "You cannot enter an empty command. Please try again!";
+  print_string "> "
+
+(** [malformed_command_message] is the message for when a player enters a
+    malformed command. *)
+let malformed_command_message = 
+  print_endline "We did not recognize that. Please try again!";
+  print_string "> "
+(*
+(** [try_allin_read_again p st] reads the user's input and passes it into 
+    [f]. *)
+let rec try_allin_read_again p st =
+  match read_line () with
+  | str -> execute_all_in str p st*)
+
 (** [execute_all_in str p st] interprets [p]'s input [str] in the context that a 
     player has gone all in and returns [st] that reflects as such. *)
 let rec execute_all_in str p st =
   match parse str with
   | Quit -> 
-    begin
-      print_endline "You cannot quit in the middle of the game. Please try again!";
-      print_string "> ";
+    begin (*
+      quit_error;
+      try_allin_read_again p st*)
       match read_line () with
       | str -> execute_all_in str p st
     end
   | Continue -> 
     begin
-      print_endline "Please enter a betting action.";
-      print_string "> ";
+      continue_error;
       match read_line () with
       | str -> execute_all_in str p st
     end
@@ -174,8 +240,7 @@ let rec execute_all_in str p st =
       match check st p with 
       | exception InvalidBet -> 
         begin
-          print_endline "You cannot check when the current bet is not 0. Please try again!";
-          print_string "> ";
+          check_error;
           match read_line () with
           | str -> execute_all_in str p st
         end
@@ -184,33 +249,29 @@ let rec execute_all_in str p st =
   | Call -> (call st p, false)
   | Allin -> 
     begin
-      print_endline "Please either quit, call, or check";
-      print_string "> ";
+      allin_correction;
       match read_line () with
       | str -> execute_all_in str p st
     end
   | Raise i -> 
     begin
-      print_endline "Please either quit, call, or check";
-      print_string "> ";
+      allin_correction;
       match read_line () with
       | str -> execute_all_in str p st
     end
   | exception Empty -> 
     begin
-      print_endline "You cannot enter an empty command. Please try again!";
-      print_string "> ";
+      empty_command_message;
       match read_line () with
       | str -> execute_all_in str p st
     end
   | exception Malformed -> 
     begin
-      print_endline "We did not recognize that. Please try again!";
-      print_string "> ";
+      malformed_command_message;
       match read_line () with
       | str -> execute_all_in str p st
     end
-  | Default -> failwith "player entered command should never parse to Default"
+  | Default -> failwith "player-entered command should never parse to Default"
 
 (** [execute str p st] inteprets [p]'s [str] in the context of a regular betting
     round and returns an updated [st] which reflects it. *)
@@ -218,15 +279,13 @@ let rec execute str p st =
   match parse str with
   | Quit -> 
     begin
-      print_endline "You cannot quit in the middle of the game. Please try again!";
-      print_string "> ";
+      quit_error;
       match read_line () with
       | str -> execute str p st
     end
   | Continue -> 
     begin
-      print_endline "Please enter a betting action.";
-      print_string "> ";
+      continue_error;
       match read_line () with
       | str -> execute str p st
     end
@@ -236,8 +295,7 @@ let rec execute str p st =
       match check st p with 
       | exception InvalidBet -> 
         begin
-          print_endline "You cannot check when the current bet is not 0. Please try again!";
-          print_string "> ";
+          check_error;
           match read_line () with
           | str -> execute str p st
         end
@@ -256,12 +314,6 @@ let rec execute str p st =
         end
       | st' -> (st', false)
     end
-  (* begin
-     print_endline "Allin is currently in development. Please try another betting command!";
-     print_string "> ";
-     match read_line () with
-     | str -> execute str p st
-     end *)
   | Raise i -> 
     begin
       match raise i st p with 
@@ -276,15 +328,13 @@ let rec execute str p st =
     end
   | exception Empty -> 
     begin
-      print_endline "You cannot enter an empty command. Please try again!";
-      print_string "> ";
+      empty_command_message;
       match read_line () with
       | str -> execute str p st
     end
   | exception Malformed -> 
     begin
-      print_endline "We did not recognize that. Please try again!";
-      print_string "> ";
+      malformed_command_message;
       match read_line () with
       | str -> execute str p st
     end
@@ -645,18 +695,26 @@ and start_game st =
       |> next_game
     end
 
-(** [main ()] prompts for the game to play, then starts it. *)
-let main () =
-  ANSITerminal.erase Screen;
-  (print_string
-     "\n\nWelcome to Texas Hold 'Em.\n");
-  print_endline "Please enter the number of players in your game.\nNote there may only be up to 10 players in your game";
+(** [get_players] asks for the number of players and their names, and then 
+    starts a game with that many human players. *)
+let rec get_players () = 
+  print_endline "\nPlease enter the number of players in your game.";
+  print_endline "Note there may only be up to 10 players in your game";
   print_string  "> ";
   match int_of_string(read_line ()) with
   | exception End_of_file -> ()
-  | exception e -> print_endline "You must enter a number.\nStart the game engine again to play"
-  | x -> if (x > 10 || x <1 ) then print_endline "You must enter a number between 1 and 10. \n Start the game engine again to play";
-    start_game (create_player_list x [] |> new_round)
+  | exception e -> print_endline "You must enter a number."; get_players ()
+  | x -> 
+    if (x > 10 || x < 1) 
+    then (print_endline "You must enter a number between 1 and 10."; 
+      get_players () )
+    else start_game (create_player_list x [] |> new_round)
+
+(** [main ()] clears the screen and prompts for the game to play, then begins 
+    to collect information over the players. *)
+let main () =
+  ANSITerminal.erase Screen;
+  (print_string "\n\nWelcome to Texas Hold 'Em!"); get_players () 
 
 let () = main ()
 

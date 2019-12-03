@@ -14,6 +14,7 @@ type state =
     max_bet : int;
     rem_deck : deck
   }
+
 (**[deal_players d lst acc] is [lst] with the hand of each player in [lst] set
    to a deck of 2 cards dealt from [d]*) 
 let rec deal_players d lst acc=
@@ -27,7 +28,6 @@ let rec min_money min players =
   match players with 
   | [] -> min
   | h :: t -> if money h < min then min_money (money h) t else min_money min t
-
 
 let new_round lst=
   if List.length lst < 1  || List.length lst > 10 then raise InvalidPlayerList 
