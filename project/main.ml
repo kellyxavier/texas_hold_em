@@ -9,7 +9,7 @@ open Rank_hand
     empty nor already in [lst]. *)
 let rec get_valid_name lst i =
   print_endline ("Player " ^ (string_of_int i) ^
-    ": enter your name\nNote: your name must be unique.");
+                 ": enter your name\nNote: your name must be unique.");
   print_string "> ";
   match read_line () with
   | "" ->
@@ -30,11 +30,11 @@ let rec get_valid_name lst i =
 let rec create_player_list x acc =
   if x = 0 then List.rev acc
   else create_player_list (x - 1) (
-    (List.length acc 
-    |> (+) 1 
-    |> get_valid_name (List.map (fun p -> name p) acc) 
-    |> create_player
-    ) :: acc)
+      (List.length acc 
+       |> (+) 1 
+       |> get_valid_name (List.map (fun p -> name p) acc) 
+       |> create_player
+      ) :: acc)
 
 (** [more_than_one_player st] is true if there's more than one active player
     in the game and false otherwise. *)
@@ -119,11 +119,11 @@ let take_blind_money st =
 let display_blind_money p =
   match blind p with
   | Small -> print_endline ("\n\n" ^ name p ^ 
-    ", you are small blind, so you automatically bet $25.\nYou now only have $" 
-    ^ string_of_int (money p) ^ " left.")
+                            ", you are small blind, so you automatically bet $25.\nYou now only have $" 
+                            ^ string_of_int (money p) ^ " left.")
   | Big -> print_endline ("\n\n" ^ name p ^ 
-    ", you are big blind, so you automatically bet $50.\nYou now only have $" 
-    ^ string_of_int (money p) ^ " left.")
+                          ", you are big blind, so you automatically bet $50.\nYou now only have $" 
+                          ^ string_of_int (money p) ^ " left.")
   | None -> print_string ""
 
 (** [show_blind_info players] prints out the blind information of each
@@ -140,7 +140,28 @@ let rec print_prev_moves players =
     print_prev_moves t
 
 (** [show_info p st] prints the private information of player [p]*)
-let show_info p st =
+let show_info p st = 
+  let info_p = get_info st p in 
+  let wallet = info_p.wallet |> string_of_int in 
+  let t = info_p.t_cards |> to_string in 
+  let h = info_p.h_cards |> to_string in
+  let bp = info_p.b_pool |> string_of_int in
+  print_endline
+    ("There is currently $" ^ bp ^ " in the betting pool.");
+  print_endline
+    ("\nThese are the last moves of each player currently at the table:");
+  print_prev_moves (active_players st);
+  print_endline
+    ("\nYou have $" ^ wallet ^ " and your cards are:\n" ^ h);
+  if t = "" then print_endline "There are no cards currently on the table."
+  else print_endline ("The table currently has the cards: \n" ^ t);
+  print_endline ("\nYou must bet at least $" ^ 
+                 string_of_int (current_bet st - money_betted p) ^
+                 " to stay in the game.\n")
+
+
+
+  (*
   let money = money p in let hand = hand p |> to_string in 
   let t = st |> table |> to_string in
   print_endline 
@@ -149,7 +170,7 @@ let show_info p st =
   print_endline 
     ("\nYou have $" ^ (string_of_int money) ^ " and your cards are:\n" ^ hand);
   if t = "" then print_endline "There are no cards currently on the table"
-  else print_endline ("The table currently has the cards: \n" ^ t)
+  else print_endline ("The table currently has the cards: \n" ^ t) *)
 
 (** [show_flop st] reveals the table with the newly-added flop to all 
     players. *)
@@ -382,9 +403,9 @@ let rec everyone_gets_a_turn players st =
             match read_line () with 
             | _ -> 
               show_info h st; 
-              let need_to_stay_in =  current_bet st - money_betted h in
-              print_endline ("You must bet at least $" ^ string_of_int (current_bet st - money_betted h) ^ " to stay in the game.");
-              if need_to_stay_in = 0 
+              (* let need_to_stay_in =  current_bet st - money_betted h in *)
+              (* print_endline ("You must bet at least $" ^ string_of_int (current_bet st - money_betted h) ^ " to stay in the game."); *)
+              if current_bet st - money_betted h = 0 
               then
                 print_endline ("Your options are 'fold', 'check', 'call', 'allin', 'raise x',\nwhere x is a positive integer.")
               else
@@ -429,9 +450,9 @@ and continued_betting players st =
                 match read_line () with 
                 | _ -> 
                   show_info h st;
-                  let need_to_stay_in =  current_bet st - money_betted h in
-                  print_endline ("You must bet at least $" ^ string_of_int (current_bet st - money_betted h) ^ " to stay in the game.");
-                  if need_to_stay_in = 0 
+                  (* let need_to_stay_in =  current_bet st - money_betted h in *)
+                  (* print_endline ("You must bet at least $" ^ string_of_int (current_bet st - money_betted h) ^ " to stay in the game."); *)
+                  if current_bet st - money_betted h = 0 
                   then
                     print_endline ("Your options are 'fold', 'check', 'call', 'allin', 'raise x', \n where x is a positive integer.")
                   else
@@ -685,7 +706,7 @@ let rec get_players () =
   | x -> 
     if (x > 10 || x < 1) 
     then (print_endline "You must enter a number between 1 and 10."; 
-      get_players () )
+          get_players () )
     else start_game (create_player_list x [] |> new_round)
 
 (** [main ()] clears the screen and prompts for the game to play, then begins 
@@ -695,4 +716,3 @@ let main () =
   (print_string "\n\nWelcome to Texas Hold 'Em!"); get_players () 
 
 let () = main ()
-

@@ -1,5 +1,6 @@
 open Deck
 open Player
+open Command
 
 exception InvalidPlayerList
 exception InvalidBet
@@ -13,6 +14,19 @@ type state =
     current_bet : int;
     max_bet : int;
     rem_deck : deck
+  }
+
+type info =
+  {
+    wallet : int;
+    o_wallets : (string * int) list;
+    m_bet : int;
+    c_bet : int;
+    m_betted : int;
+    b_pool : int;
+    old_moves : (string * command) list;
+    h_cards : deck;
+    t_cards : deck;
   }
 
 (**[deal_players d lst acc] is [lst] with the hand of each player in [lst] set
@@ -196,3 +210,32 @@ let all_in st p =
          betting_pool = st.betting_pool + m; 
          current_bet = st.current_bet + (st.current_bet - m)} *)
 (* else raise InvalidBet *)
+
+(** [other_wallets lst n acc] is a list of tuples of a player in [lst] that is
+    not [n] and how much money they have left. *)
+let rec other_wallets lst n acc =
+  match lst with  
+  | [] -> List.rev acc
+  | h :: t -> 
+    if name h = n then other_wallets t n acc
+    else other_wallets t n ((name h, money h) :: acc)
+
+(** [last_moves lst acc] is a list of tuples of a player in [lst] and their
+    last move. Their last move is default if they haven't done anything yet. *)
+let rec last_moves lst acc =
+  match lst with
+  | [] -> List.rev acc
+  | h :: t -> last_moves t ((name h, last_move h) :: acc)
+
+let get_info st p =
+  {
+    wallet = money p;
+    o_wallets = other_wallets (active_players st) (name p) [];
+    m_bet = max_bet st;
+    c_bet = current_bet st;
+    m_betted = money_betted p;
+    b_pool = betting_pool st;
+    old_moves = last_moves (active_players st) [];
+    h_cards = hand p;
+    t_cards = table st;
+  }

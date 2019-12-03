@@ -19,6 +19,21 @@ exception InvalidBet
 (** The abstract type of values representing the game state. *)
 type state 
 
+(** The record of values applicable for a betting player's decision
+    making. *)
+type info =
+  {
+    wallet : int;
+    o_wallets : (string * int) list;
+    m_bet : int;
+    c_bet : int;
+    m_betted : int;
+    b_pool : int;
+    old_moves : (string * command) list;
+    h_cards : deck;
+    t_cards : deck;
+  }
+
 (** [new_round lst] is the state of the game at the start of a new round. 
     In that state the current list of active players is [lst], the table is 
     an empty deck, and the betting pool is 0.
@@ -119,3 +134,7 @@ val all_in : state -> player -> state
    Raises [InvalidBet] if the current bet in [st] + [r] is greater than the 
    max bet in [st]. *)
 val raise : int -> state -> player -> state
+
+(** [get_info st p] is info for [p] to help [p] make a better betting 
+    decision in [st]. *)
+val get_info : state -> player -> info
