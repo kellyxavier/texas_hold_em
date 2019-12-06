@@ -34,7 +34,7 @@ let insert s r d =
   (s, r) :: d
 
 (** [get_card n d r] returns a tuple of the [n]th card in [d] and [r] which are
-    all cards in [d] preceeding the [n]th card. [r] might not be in same order 
+    all cards in [d] preceeding the [n]th card. [r] may not be in same order 
     as [d] was.
     Raises [EmptyDeck] is [n] is greater than the length of [d]. *)
 let rec get_card n d r =

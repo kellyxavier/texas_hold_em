@@ -14,16 +14,16 @@ exception InvalidArgument
 (** The type of a card suit. *)
 type suit = Clubs | Diamonds | Hearts | Spades
 
-(** The type of a card. *)
+(** The abstract type of a card. *)
 type card
 
-(** The type of a deck. *)
+(** The abstract type of a deck. *)
 type deck
 
 (** [empty] is the empty deck. *)
 val empty : deck
 
-(** [sorted_deck] is an ordered list of all 52 cards, going from clubs
+(** [sorted_deck] is an ordered list of all 52 cards, going from Clubs
     between Ace and King, then Diamonds, then Hearts, and then Spades. *)
 val sorted_deck : deck
 
@@ -51,7 +51,6 @@ val add : deck -> deck -> deck
 val to_list : deck -> (suit * int) list
 
 (** [to_string d] is a string of the deck in the following format:
-    [(Clubs, 1); (Diamonds 5)] ->
     Ace of Clubs
     5 of Diamonds *)
 val to_string : deck -> string
