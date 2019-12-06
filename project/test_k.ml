@@ -2,6 +2,7 @@ open OUnit2
 open Deck
 open Player
 open State
+open Command
 
 
 let d = sorted_deck
@@ -68,11 +69,12 @@ let valid_player_list_2 = [player1; player2; player3; player4; player5;
                            player6; player7; player8; player9; player10]
 let valid_player_list_3 = [player1; player2]
 let st = new_round valid_player_list_1
+let og_act_players = st |> active_players
 let player_delete = List.nth (st |> active_players) 0
 let players_left = [List.nth (st |> active_players) 1; 
                     List.nth (st |> active_players) 2;
                     List.nth (st |> active_players) 3]
-let t = empty |> insert Clubs 2 |> insert Diamonds 7 |> insert Diamonds 6
+let dk = empty |> insert Clubs 2 |> insert Diamonds 7 |> insert Diamonds 6
 
 let p1 = create_player "A"
 let p2 = create_player "B"
@@ -82,18 +84,33 @@ let test_state1 = new_round p_lst1
 let test_state_cb_20 = let s' = change_current_bet test_state1 20 
   in change_betting_pool s' 20
 let test_state_p2_quit = quit test_state1 p2
+let test_state_p2_fold = fold test_state1 p2
 let test_state_p1_check = check test_state1 p1
 let test_state_p2_call = call test_state_cb_20 p2
+let test_state_p2_allin = all_in test_state1 p2
+let test_state_p1_raise_2000 = raise 2000 test_state1 p1
+let test_state_p2_call_2000 = call test_state_p1_raise_2000 p2
+let test_state_p2_raise_1000 = raise 1000 test_state1 p2
 
 let rec get_money p lst =
   match lst with
   | [] -> failwith "empty list"
   | h :: t -> if name h = name p then money h else get_money p t
 
+let rec get_last_move p lst =
+  match lst with
+  | [] -> failwith "empty list"
+  | h :: t -> if name h = name p then last_move h else get_last_move p t
+
 let rec get_money_betted p lst =
   match lst with
   | [] -> failwith "empty list"
   | h :: t -> if name h = name p then money_betted h else get_money_betted p t
+
+let rec get_player i lst =
+  match lst with 
+  | [] -> failwith "empty list"
+  | h :: t -> if i = 1 then h else get_player (i-1) t
 
 let rec player_names  acc lst=
   match lst with 
@@ -175,21 +192,46 @@ let state_tests =
     "remove_player results in state with active players without player that
     was removed" 
     >:: (fun _ -> 
-        assert_equal players_left (remove_active_player st player_delete|> 
+        assert_equal players_left (remove_active_player st player_delete |> 
                                    active_players));
+    "remove_all_active_players results in state with active players set to an
+    empty list" 
+    >:: (fun _ -> 
+        assert_equal [] (remove_all_active_players st (st |> active_players) |> 
+                         active_players));
+    "remove_all_active_players results in state with all players set to the
+    original active players" 
+    >:: (fun _ -> 
+        assert_equal og_act_players (remove_all_active_players st 
+                                       og_act_players |> all_players));
+    "state's all_players can be updated" >:: (fun _ -> 
+        assert_equal valid_player_list_2 
+          (change_all_players st valid_player_list_2 |> all_players));
+    "state's active_players can be updated" >:: (fun _ -> 
+        assert_equal valid_player_list_2 
+          (change_active_players st valid_player_list_2 |> active_players));
     "state's table can be updated" >:: (fun _ -> 
-        assert_equal t (change_table st t |> table));
+        assert_equal dk (change_table st dk |> table));
     "state's betting pool can be updated" >:: (fun _ -> 
         assert_equal 30 (change_betting_pool st 30 |> betting_pool));
+    "state's current bet can be updated" >:: (fun _ -> 
+        assert_equal 30 (change_current_bet st 30 |> current_bet));
+    "state's max bet can be updated" >:: (fun _ -> 
+        assert_equal 400 (change_max_bet st 400 |> max_bet));
+    "find_max bet evaluates correctly when players have varying amounts of money
+    in their wallets" >:: (fun _ -> 
+        assert_equal 4000 (find_max_bet test_state_p2_raise_1000));
+    "state's rem_deck can be updated" >:: (fun _ -> 
+        assert_equal dk (change_rem_deck dk st |> rem_deck));
     "has right number of active players after one quits" >:: (fun _ -> 
         assert_equal 2
           (test_state_p2_quit |> active_players |> List.length));
     "successfully removes a player from active list when quit" >:: (fun _ -> 
         assert_equal [name p1; name p3]
           (test_state_p2_quit |> active_players |> player_names []));
-    "removes a player from all players when quit" >:: (fun _ -> 
+    "sucessfully removes a player from all players when quit" >:: (fun _ -> 
         assert_equal [name p1; name p3] 
-          (fold test_state_p2_quit player2 |> all_players |> player_names []));
+          (test_state_p2_quit |> all_players |> player_names []));
     "check when current bet not equal to money betted should raise InvalidBet" 
     >:: (fun _ -> 
         assert_raises (InvalidBet) (fun () -> check test_state_cb_20 p2 ));
@@ -200,7 +242,42 @@ let state_tests =
         assert_equal 20 (test_state_p2_call |> active_players 
                          |> get_money_betted p2)); 
     "betting pool is changed correctly when player calls" >:: (fun _ ->
-        assert_equal 40 (test_state_p2_call |> betting_pool)) 
+        assert_equal 40 (test_state_p2_call |> betting_pool));
+    "last move of player is Default when player has not made a move yet" >:: 
+    (fun _ -> assert_equal Default
+        (test_state1 |> active_players |> get_last_move p2)); 
+    "last move of player is Fold after the player folds" >:: (fun _ -> 
+        assert_equal Fold
+          (test_state_p2_fold |> all_players |> get_last_move p2));
+    "last move of player is Call after the player calls" >:: (fun _ -> 
+        assert_equal Check
+          (test_state_p1_check |> active_players |> get_last_move p1));
+    "last move of player is Call after the player calls" >:: (fun _ -> 
+        assert_equal Call
+          (test_state_p2_call |> active_players |> get_last_move p2)); 
+    "last move of player is Allin after the player goes allin" >:: (fun _ -> 
+        assert_equal Allin
+          (test_state_p2_allin |> active_players |> get_last_move p2));
+    "last move of player is Raise 1000 after the player raise 1000" >:: (fun _ -> 
+        assert_equal (Raise 1000)
+          (test_state_p2_raise_1000 |> active_players |> get_last_move p2));
+    "get_info evaluates to the appropriate info record for p1 when p1 checks 
+       and p2 and p3 have not made a move yet" >:: (fun _ -> 
+        assert_equal (let i = get_info test_state1 p1 in 
+                      {i with old_moves = [name p1, Check; name p2, Default; 
+                                           name p3, Default]})
+          (get_info test_state_p1_check p1));
+    (* "get_info evaluates to the appropriate info record for p1 when 
+       p1 raises 2000 and p2 ad p3 have not made a move yet" >:: (fun _ -> 
+        assert_equal (let i = get_info test_state1 
+                          (get_player 1 (active_players test_state1)) in 
+                      {i with wallet = 3000; c_bet = 2000; m_betted = 2000; b_pool = 2000; 
+                              old_moves = [name p1, (Raise 2000); 
+                                           name p2, Default; 
+                                           name p3, Default]})
+          (get_info test_state_p1_raise_2000 
+             (get_player 1 (active_players test_state_p1_raise_2000)))); *)
+
   ]
 
 let tests =

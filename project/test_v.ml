@@ -107,9 +107,8 @@ let state_round_v_tests = [
       assert_equal [name player1; name player3]
         (fold test_state1 player2 |> active_players |> player_names []));
   "doesn't remove a player from all players when folding" >:: (fun _ -> 
-      assert_equal [player1; player2; player3] 
+      assert_equal [player1; change_last_move player2 Fold; player3] 
         (fold test_state1 player2 |> all_players)); 
-
   "all_in removes all of the player's money" >:: (fun _ -> assert_equal 0
                                                      (all_in test_state1 player1 |> active_players |> get_money player1)~printer:string_of_int); 
   "all_in correctly increases the better pool" >:: (fun _ -> assert_equal 5000

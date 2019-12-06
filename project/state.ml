@@ -34,10 +34,17 @@ type info =
 let rec deal_players d lst acc=
   match lst with 
   | [] -> (List.rev acc, d)
-  | h::t -> let cards_deck_pair = draw_card 2 d in 
-    let cards = fst cards_deck_pair in let rem_deck = snd cards_deck_pair in 
-    deal_players rem_deck t ((change_hand h cards |> reset_money_betted ):: acc)
+  | h::t -> 
+    begin
+      let cards_deck_pair = draw_card 2 d in 
+      let cards = fst cards_deck_pair in 
+      let rem_deck = snd cards_deck_pair in 
+      deal_players rem_deck t ((change_hand h cards 
+                                |> reset_money_betted ):: acc)
+    end
 
+(**[min_money min players] is the minimum anount of money held by a player
+   in [players]*) 
 let rec min_money min players =
   match players with 
   | [] -> min
@@ -45,14 +52,14 @@ let rec min_money min players =
 
 let new_round lst=
   if List.length lst < 1  || List.length lst > 10 then raise InvalidPlayerList 
-  else 
-    let lst' = List.map (fun p -> reset_last_move p) lst in
-    let deal = deal_players (shuffle ()) lst' [] in
-    {all_players = lst'; active_players = fst deal; 
-     table = empty; betting_pool = 0; current_bet = 0; max_bet = lst' 
-                                                                 |> min_money 
-                                                                   max_int;
-     rem_deck = snd deal}
+  else
+    begin 
+      let lst' = List.map (fun p -> reset_last_move p) lst in
+      let deal = deal_players (shuffle ()) lst' [] in
+      {all_players = lst'; active_players = fst deal; 
+       table = empty; betting_pool = 0; current_bet = 0; 
+       max_bet = lst' |> min_money max_int; rem_deck = snd deal}
+    end
 
 let all_players st = 
   st.all_players
@@ -66,37 +73,32 @@ let active_players st =
 let change_active_players st lst =
   {st with active_players = lst}
 
+(**[remove_player lst p acc] is [lst] without the player with same name as [p]*)
 let rec remove_player lst p acc =
   match lst with
   | [] -> List.rev acc
-  | h::t -> if name p = name h then remove_player t p acc 
-    else remove_player t p (h::acc)
+  | h::t -> 
+    begin
+      if name p = name h then remove_player t p acc 
+      else remove_player t p (h::acc)
+    end
 
+(**[change_player lst p acc] is [lst] with the player with same name as [p] 
+   replaced by [p]*)
 let rec change_player lst p acc =
   match lst with
   | [] -> List.rev acc 
-  | h :: t -> if name h = name p then change_player t p (p :: acc)
-    else change_player t p (h :: acc)
-
-(* let rec update st p =
-   match all_players st with
-   | [] -> failwith "player not in all players list"
-   | h :: t -> change_all_players st (change_player (all_players st) p [])
-
-   let rec asdf st =
-   match active_players st with
-   | [] -> st
-   | h :: t -> asdf (update st p) *)
-
-
+  | h :: t -> 
+    begin 
+      if name h = name p then change_player t p (p :: acc)
+      else change_player t p (h :: acc)
+    end
 
 let remove_active_player st p =
   let act_players_left = remove_player st.active_players p [] in
   let all_ps' = change_player st.all_players p [] in
   {st with active_players = act_players_left; all_players = all_ps'}
 
-(* let act_players_left = remove_player st.active_players p [] in
-   {st with active_players = act_players_left} *)
 
 let rec remove_all_active_players st act_players =
   match act_players with
@@ -106,13 +108,7 @@ let rec remove_all_active_players st act_players =
 let table st =
   st.table
 
-(* let rec add_to_table_helper st d acc : deck=
-   match d with
-   | [] -> acc
-   | h::t -> add_to_table_helper st t (h::acc) *)
-
 let change_table st d =
-  (* {st with table = add_to_table_helper st d st.table} *)
   {st with table = (add d st.table)}
 
 let betting_pool st =
@@ -136,11 +132,14 @@ let change_max_bet st m =
 let rec find_max_bet_aux lst mb =
   match lst with 
   | [] -> mb
-  | h :: t -> if money h < mb then find_max_bet_aux t (money h) 
-    else find_max_bet_aux t mb
+  | h :: t -> 
+    begin
+      if money h < mb then find_max_bet_aux t (money h) 
+      else find_max_bet_aux t mb
+    end
 
 let find_max_bet st =
-  find_max_bet_aux st.active_players 0
+  find_max_bet_aux st.active_players 5000
 
 let rem_deck st =
   st.rem_deck
@@ -148,68 +147,78 @@ let rem_deck st =
 let change_rem_deck rd st =
   {st with rem_deck = rd}
 
+(**[change_player lst p acc] is [lst] with the player with same name as [p] 
+   replaced by [p] with last_move set to [move]*)
 let rec update_player_last_move lst p move acc =
   match lst with 
   | [] -> List.rev acc
-  | h :: t -> if name p = name h 
-    then let updated_player = change_last_move p move in update_player_last_move t p move (updated_player :: acc)
-    else update_player_last_move t p move (h :: acc)
+  | h :: t -> 
+    begin
+      if name p = name h then 
+        begin
+          let updated_player = change_last_move p move in 
+          update_player_last_move t p move (updated_player :: acc)
+        end
+      else update_player_last_move t p move (h :: acc)
+    end
 
 let rec update_player_money lst p m move acc =
   match lst with 
   | [] -> List.rev acc
-  | h :: t -> if name p = name h then let updated_player = change_money p m 
-      in let updated_player' = change_last_move updated_player move in
-      (* print_endline (name p ^ "has betted " ^(string_of_int (money_betted updated_player) ^ " after going all in"));  *)
-      update_player_money t p m move (updated_player' :: acc)
-    else update_player_money t p m move (h :: acc)
+  | h :: t -> 
+    begin
+      if name p = name h then 
+        begin
+          let updated_player = change_money p m in 
+          let updated_player' = change_last_move updated_player move in
+          update_player_money t p m move (updated_player' :: acc)
+        end
+      else update_player_money t p m move (h :: acc)
+    end
 
 let quit st p =
-  let s' = remove_active_player st p
-  in let s'' = {s' with all_players = remove_player (s'.all_players) p []}
-  in let all_players' = update_player_last_move (all_players s'') p Quit []
-  in {s'' with all_players = all_players'} 
+  let s' = remove_active_player st p in 
+  let s'' = {s' with all_players = remove_player (s'.all_players) p []} in 
+  let all_players' = update_player_last_move (all_players s'') p Quit [] in 
+  {s'' with all_players = all_players'} 
 
 let fold st p =
-  let s' = remove_active_player st p 
-  in let active_players' = update_player_last_move (s'.active_players) p Fold []
-  in {s' with active_players = active_players'} 
+  let s' = remove_active_player st p in 
+  let all_players' = update_player_last_move (s'.all_players) p Fold [] in
+  {s' with all_players = all_players'} 
 
 let check st p =
-  if st.current_bet = money_betted p then 
-    let active_players' = update_player_last_move (st.active_players) p Check []
-    in {st with active_players = active_players'} 
+  if st.current_bet = money_betted p then
+    begin 
+      let active_players' = update_player_last_move (st.active_players) p 
+          Check [] in 
+      {st with active_players = active_players'} 
+    end
   else raise InvalidBet
 
 let call st p =
-  let diff = (st.current_bet - money_betted p) 
-  in let active_players' = update_player_money st.active_players p (-diff) Call []
-  in {st with active_players = active_players'; 
-              betting_pool = st.betting_pool + diff}
+  let diff = (st.current_bet - money_betted p) in 
+  let active_players' = update_player_money st.active_players p (-diff) 
+      Call [] in 
+  {st with active_players = active_players'; 
+           betting_pool = st.betting_pool + diff}
 
 let raise r st p =
   let m = (st.current_bet - money_betted p + r) in
   if max_bet st >=  st.current_bet + r && r >= 0
-  then 
-    let active_players' = update_player_money st.active_players p (-m) (Raise r) []
-    in  
-    {st with active_players = active_players';
-             betting_pool = st.betting_pool + m; 
-             current_bet = st.current_bet + r}
+  then
+    begin 
+      let cmd = if m = money p then Allin else (Raise r) in
+      let active_players' = update_player_money st.active_players p (-m) 
+          cmd [] in  
+      {st with active_players = active_players'; 
+               betting_pool = st.betting_pool + m; 
+               current_bet = st.current_bet + r}
+    end
   else raise InvalidBet
 
 let all_in st p =
   let r = money p - (st.current_bet - money_betted p) in raise r st p
-(* let m = money p in
-   let active_players' = update_player_money st.active_players p (-m) [] in *)
-(* print_endline ("current_bet after " ^ name p ^ " went all in: " ^ string_of_int (st.current_bet + (m - st.current_bet + money_betted p)));   *)
-(* {st with active_players = active_players';
-         betting_pool = st.betting_pool + m; 
-         current_bet = st.current_bet + (m - st.current_bet - money_betted p)} *)
-(* {st with active_players = active_players';
-         betting_pool = st.betting_pool + m; 
-         current_bet = st.current_bet + (st.current_bet - m)} *)
-(* else raise InvalidBet *)
 
 (** [other_wallets lst n acc] is a list of tuples of a player in [lst] that is
     not [n] and how much money they have left. *)
@@ -217,8 +226,10 @@ let rec other_wallets lst n acc =
   match lst with  
   | [] -> List.rev acc
   | h :: t -> 
-    if name h = n then other_wallets t n acc
-    else other_wallets t n ((name h, money h) :: acc)
+    begin
+      if name h = n then other_wallets t n acc
+      else other_wallets t n ((name h, money h) :: acc)
+    end
 
 (** [last_moves lst acc] is a list of tuples of a player in [lst] and their
     last move. Their last move is default if they haven't done anything yet. *)
@@ -227,7 +238,20 @@ let rec last_moves lst acc =
   | [] -> List.rev acc
   | h :: t -> last_moves t ((name h, last_move h) :: acc)
 
+let rec string_wallets wallets acc =
+  match wallets with 
+  | [] -> acc
+  | (n, m) :: t -> string_wallets t (n ^ "'s walllet: " ^ string_of_int (m))
+
 let get_info st p =
+  (* print_endline ("printing info for player " ^ name p);
+     print_endline ("wallet: " ^ string_of_int (money p));
+     let oth_wals = other_wallets (active_players st) (name p) [] in 
+     print_endline ("o_wallets: " ^ string_wallets oth_wals "");
+     print_endline ("m_bet: " ^ string_of_int (max_bet st));
+     print_endline ("c_bet: " ^ string_of_int (current_bet st));
+     print_endline ("m_betted: " ^ string_of_int (money_betted p));
+     print_endline ("b_pool: " ^ string_of_int (betting_pool st)); *)
   {
     wallet = money p;
     o_wallets = other_wallets (active_players st) (name p) [];

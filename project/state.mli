@@ -56,9 +56,12 @@ val active_players : state -> player list
 val change_active_players : state -> player list -> state
 
 (**[remove_active_player st p] is state [st] with active_players without
-   player [p]. *)
+   player [p] and all_players with the player with the same name as [p] replaced
+   by [p]. *)
 val remove_active_player : state -> player -> state
 
+(**[remove__all_active_players st act_players] is state [st] with no 
+   active_players and all_players replaced by [act_players]. *)
 val remove_all_active_players: state -> player list -> state 
 
 (** [table st] is the deck currently on the table in state [st]. *)
@@ -91,8 +94,10 @@ val change_max_bet : state -> int -> state
     money currently has.*)
 val find_max_bet : state -> int
 
+(** [rem_deck st] is the current remaining deck in [st]. *)
 val rem_deck : state -> deck
 
+(** [change_rem_deck st] is [st] with rem_deck set to [rd]. *)
 val change_rem_deck : deck -> state -> state
 
 (** [update_player_money lst p m acc] is the list of players [lst] with the 
@@ -119,13 +124,6 @@ val check : state -> player -> state
    current bet in state [st]. *)
 val call : state -> player -> state
 
-(**[all_in st p] is state [st] with active players changed to reflect the change 
-   in player [p]'s money (ie sets [p]'s money to 0) and the betting pool 
-   increased by the total amount of money [p] previously had. 
-   Raises: [InvalidBet] is [p]'s money and money betted is greated than the
-      maximum bet in [st]. *)
-val all_in : state -> player -> state
-
 (**[raise r st p] is state [st] with active players changed to reflect the 
    change in player [p]'s money (ie decreases the player's money by the 
    difference between the amount of money the player has previously betted and 
@@ -134,6 +132,13 @@ val all_in : state -> player -> state
    Raises [InvalidBet] if the current bet in [st] + [r] is greater than the 
    max bet in [st]. *)
 val raise : int -> state -> player -> state
+
+(**[all_in st p] is state [st] with active players changed to reflect the change 
+   in player [p]'s money (ie sets [p]'s money to 0) and the betting pool 
+   increased by the total amount of money [p] previously had. 
+   Raises: [InvalidBet] is [p]'s money and money betted is greated than the
+      maximum bet in [st]. *)
+val all_in : state -> player -> state
 
 (** [get_info st p] is info for [p] to help [p] make a better betting 
     decision in [st]. *)
