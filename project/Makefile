@@ -1,4 +1,4 @@
-MODULES=deck player state command test_d test_k test_v rank_hand main
+MODULES=deck player state command test_d test_k test_v rank_hand main ai
 OBJECTS=$(MODULES:=.cmo)
 MLS=$(MODULES:=.ml)
 MLIS=$(MODULES:=.mli)

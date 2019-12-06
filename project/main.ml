@@ -4,6 +4,7 @@ open State
 open Command
 open Hands
 open Rank_hand
+open Ai
 
 (** [get_valid_name lst i] is a name prompted by the [i]th user that is neither 
     empty nor already in [lst]. *)
@@ -390,7 +391,12 @@ let rec everyone_gets_a_turn players st =
         else if is_ai h 
         then 
           begin
-            let act = execute "call" h st in 
+            let act = 
+              if name h = "easy" then 
+                execute (make_easy_move st (get_info st h)) h st 
+              else if name h = "med" then
+                execute (make_med_move st (get_info st h)) h st 
+              else execute (make_hard_move st (get_info st h)) h st in 
             match act with
             | (st', raised) -> 
               if raised then continued_betting (st' |> active_players |> place_last h) st' 
@@ -437,7 +443,12 @@ and continued_betting players st =
             if is_ai h 
             then 
               begin
-                let act = execute "call" h st in 
+                let act = 
+                  if name h = "easy" then 
+                    execute (make_easy_move st (get_info st h)) h st 
+                  else if name h = "med" then
+                    execute (make_med_move st (get_info st h)) h st 
+                  else execute (make_hard_move st (get_info st h)) h st in 
                 match act with
                 | (st', raised) -> 
                   if raised then continued_betting (st' |> active_players |> place_last h) st' 
@@ -659,11 +670,15 @@ let end_game st =
   let st' = remove_all_active_players st (active_players st) in
   change_all_players st' (st' |> all_players) 
 
-(** [add_ai st] is an updated [st] with an AI player in the last position of
-    both player lists. *)
-let add_ai st =
-  let st' = change_active_players st (active_players st @ [create_ai_player]) in
-  change_all_players st' (all_players st' @ [create_ai_player])
+(** [add_ai st diff] is an updated [st] with an AI player in the last position 
+    of both player lists and difficulty set to [diff].
+
+    [diff] must match either "easy" or "med" (or "hard") if it does not match
+    one of those entries, the AI will default to "hard" *)
+let add_ai st diff =
+  let st' = change_active_players st 
+      (active_players st @ [create_ai_player diff]) in
+  change_all_players st' (all_players st' @ [create_ai_player diff])
 
 (** [next_game players] is the state of the next game with [players] in the game *)
 let rec next_game players = 
@@ -672,7 +687,8 @@ let rec next_game players =
 
 (** [start_game st] plays a game starting in [st]. *)
 and start_game st =
-  let st' = if List.length (active_players st) = 1 then add_ai st else st in
+  let st' = if List.length (active_players st) = 1 then add_ai st "easy" 
+    else st in
   let st'' = st' |> set_blinds |> take_blind_money in
   show_blind_info (active_players st''); 
   let st_at_end = st'' 

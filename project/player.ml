@@ -28,8 +28,8 @@ let create_player n =
   {name = n; hand = empty; money = 5000; status = Betting; blind = None;
    money_betted = 0; last_move = Default; is_ai = false}
 
-let create_ai_player = 
-  {name = "The AI"; hand = empty; money = 5000; status = Betting; blind = None;
+let create_ai_player diff = 
+  {name = diff; hand = empty; money = 5000; status = Betting; blind = None;
    money_betted = 0; last_move = Default; is_ai = true}
 
 let name p =

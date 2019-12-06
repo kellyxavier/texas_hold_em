@@ -1,7 +1,5 @@
 open Deck
 
-let debug = true  
-
 (** Type of a sorted hand (used for finding value of a hand) *)
 type sorted_hand = {
   clubs : int list;
