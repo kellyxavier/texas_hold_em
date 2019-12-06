@@ -4,27 +4,27 @@ open Command
 open Player
 open State
 
-let test_draw_deck_1 = 
+let test_deck_1 = 
   empty
   |> insert Diamonds 8 
   |> insert Clubs 5
 
-let test_draw_deck_2 = 
+let test_deck_2 = 
   empty 
   |> insert Clubs 11
   |> insert Spades 1
 
-let test_draw_deck_2_rev = 
+let test_deck_2_rev = 
   empty
   |> insert Spades 1
   |> insert Clubs 11
 
-let test_draw_deck = 
-  test_draw_deck_1 
+let test_deck = 
+  test_deck_1 
   |> insert Clubs 11 
   |> insert Spades 1
 
-let test_draw_deck_rev =
+let test_deck_rev =
   empty
   |> insert Spades 1
   |> insert Clubs 11
@@ -39,24 +39,32 @@ let deck_tests = [
       assert_equal false (is_empty sorted_deck));
 
   "will not draw any cards when asked" >:: (fun _ -> 
-      assert_equal (empty, test_draw_deck) 
-        (draw_card 0 test_draw_deck));
+      assert_equal (empty, test_deck) 
+        (draw_card 0 test_deck));
   "draws 2 cards as asked" >:: (fun _ -> 
-      assert_equal (test_draw_deck_2_rev, test_draw_deck_1) 
-        (draw_card 2 test_draw_deck));
+      assert_equal (test_deck_2_rev, test_deck_1) 
+        (draw_card 2 test_deck));
 
   "can draw the entire deck, leaving it empty" >:: (fun _ -> 
-      assert_equal (test_draw_deck_rev, empty) (draw_card 4 test_draw_deck));
+      assert_equal (test_deck_rev, empty) (draw_card 4 test_deck));
   "cannot draw more cards than there are cards in the deck" >:: (fun _ ->
       assert_raises EmptyDeck (fun _ -> draw_card 1 empty));
   "cannot draw negative cards" >:: (fun _ -> 
       assert_raises InvalidArgument (fun _ -> 
-          draw_card (-1) test_draw_deck));
+      draw_card (-1) test_deck));
+
+  "adding one deck on top of another" >:: (fun _ -> assert_equal test_deck
+      (add test_deck_2 test_deck_1));
+  "adding an empty deck on top does not change the deck" >:: (fun _ -> 
+    assert_equal test_deck (add empty test_deck));
+  "adding a deck on top of an empty one returns the original deck" >:: (fun _ ->
+    assert_equal test_deck (add test_deck empty));
 ]
 
 let command_tests = [
 
   "parses quit" >:: (fun _ -> assert_equal Quit (parse " quit "));
+  "parses continue" >:: (fun _ -> assert_equal Continue (parse " continue "));
   "parses fold" >:: (fun _ -> assert_equal Fold (parse " fold "));
   "parses call" >:: (fun _ -> assert_equal Call (parse " call "));
   "parses check" >:: (fun _ -> assert_equal Check (parse " check "));
@@ -110,12 +118,12 @@ let state_round_v_tests = [
       assert_equal [player1; change_last_move player2 Fold; player3] 
         (fold test_state1 player2 |> all_players)); 
   "all_in removes all of the player's money" >:: (fun _ -> assert_equal 0
-                                                     (all_in test_state1 player1 |> active_players |> get_money player1)~printer:string_of_int); 
+                                                     (all_in test_state1 player1 |> active_players |> get_money player1)(*~printer:string_of_int*)); 
   "all_in correctly increases the better pool" >:: (fun _ -> assert_equal 5000
-                                                       (all_in test_state1 player1 |> betting_pool)~printer:string_of_int);
+                                                       (all_in test_state1 player1 |> betting_pool)(*~printer:string_of_int*));
   "all_in correctly increase how much the player has betted" >:: (fun _ -> 
       assert_equal 5000
-        (all_in test_state1 player1 |> active_players |> get_betted player1)~printer:string_of_int);
+        (all_in test_state1 player1 |> active_players |> get_betted player1)(*~printer:string_of_int*));
   "cannot all_in more than the max bet" >:: (fun _ -> assert_raises InvalidBet
                                                 (fun _ -> all_in test_state2 player1));
 
@@ -132,9 +140,59 @@ let state_round_v_tests = [
 
 ]
 
+let p1 = create_player "valeria"
+let ai = create_ai_player
+
+let player_tests = [
+  "player's initial money betted is 0 " >:: (fun _ -> 
+      assert_equal 0 (p1 |> money_betted));
+  "can increment money betted" >:: (fun _ -> assert_equal 50 
+    (change_money_betted p1 50 |> money_betted));
+  "can reset money betted" >:: (fun _ -> assert_equal 0
+    (reset_money_betted p1 |> money_betted));
+
+  "player's initial last move is default" >:: (fun _ -> 
+    assert_equal Default (p1 |> last_move));
+  "player's last move can be changed to quit" >:: (fun _ -> 
+    assert_equal Quit (change_last_move p1 Quit |> last_move));
+  "player's last move can be changed to continue" >:: (fun _ -> 
+    assert_equal Continue (change_last_move p1 Continue |> last_move));
+  "player's last move can be changed to fold" >:: (fun _ -> 
+    assert_equal Fold (change_last_move p1 Fold |> last_move));
+  "player's last move can be changed to call" >:: (fun _ -> 
+    assert_equal Call (change_last_move p1 Call |> last_move));
+  "player's last move can be changed to check" >:: (fun _ -> 
+    assert_equal Check (change_last_move p1 Check |> last_move));
+  "player's last move can be changed to raise" >:: (fun _ -> 
+    assert_equal (Raise 50) (change_last_move p1 (Raise 50) |> last_move));
+  "player's last move can be changed to all in" >:: (fun _ -> 
+    assert_equal Allin (change_last_move p1 Allin |> last_move));
+  "can reset player's last move" >:: (fun _ -> assert_equal Default
+    (reset_last_move p1 |> last_move));
+
+  "AI's name is set correctly " >:: (fun _ -> 
+      assert_equal "The AI" (ai |> name));
+  "AI's initial hand is empty " >:: (fun _ -> 
+      assert_equal empty (ai |> hand));
+  "AI's inital money is 5000 " >:: (fun _ -> 
+      assert_equal 5000 (ai |> money));
+  "AI's initial status is Active " >:: (fun _ -> 
+      assert_equal Betting (ai |> status));
+  "AI's initial blind is None " >:: (fun _ -> 
+      assert_equal None (ai |> blind));
+  "AI's initial money betted is 0 " >:: (fun _ -> 
+      assert_equal 0 (ai |> money_betted));
+  "AI's initial last move is default" >:: (fun _ -> 
+    assert_equal Default (ai |> last_move));
+
+  "human player is not an AI" >:: (fun _ -> assert_equal false (is_ai p1));
+  "AI player is an AI" >:: (fun _ -> assert_equal true (is_ai ai));
+]
+
 let tests =
   List.flatten [
     deck_tests;
     command_tests;
-    state_round_v_tests
+    state_round_v_tests;
+    player_tests;
   ]
