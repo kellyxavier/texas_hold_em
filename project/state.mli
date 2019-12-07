@@ -100,8 +100,8 @@ val rem_deck : state -> deck
 (** [change_rem_deck st] is [st] with rem_deck set to [rd]. *)
 val change_rem_deck : deck -> state -> state
 
-(** [update_player_money lst p m acc] is the list of players [lst] with the 
-    money of player [p] increased by [m]. *)
+(** [update_player_money lst p m move acc] is the list of players [lst] with the 
+    money of [p] increased by [m] and the last move of [p] changed to [move]*)
 val update_player_money : player list -> player -> int -> command -> player list 
   -> player list
 

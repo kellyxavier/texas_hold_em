@@ -25,14 +25,6 @@ let sorted_deck = [
   (Spades, 11); (Spades, 12); (Spades, 13)
 ]
 
-let is_empty d =
-  match d with
-  | [] -> true
-  | _ -> false
-
-let insert s r d =
-  (s, r) :: d
-
 (** [get_card n d r] returns a tuple of the [n]th card in [d] and [r] which are
     all cards in [d] preceeding the [n]th card. [r] may not be in same order 
     as [d] was.
@@ -56,6 +48,14 @@ let rec shuffle_help n d lst =
 
 let shuffle u =
   shuffle_help 52 sorted_deck []
+
+let is_empty d =
+  match d with
+  | [] -> true
+  | _ -> false
+
+let insert s r d =
+  (s, r) :: d
 
 (** [draw_card_help n d lst] is a tail-recursive implementation of draw_card
     which returns [lst]. *)

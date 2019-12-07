@@ -99,7 +99,6 @@ let remove_active_player st p =
   let all_ps' = change_player st.all_players p [] in
   {st with active_players = act_players_left; all_players = all_ps'}
 
-
 let rec remove_all_active_players st act_players =
   match act_players with
   | [] -> st 
@@ -129,6 +128,8 @@ let max_bet st =
 let change_max_bet st m =
   {st with max_bet = m}
 
+(**[find_max_bet_aux lst mb] is a tail recursive implementation of 
+   [find_max_bet st]*)
 let rec find_max_bet_aux lst mb =
   match lst with 
   | [] -> mb
@@ -147,8 +148,8 @@ let rem_deck st =
 let change_rem_deck rd st =
   {st with rem_deck = rd}
 
-(**[change_player lst p acc] is [lst] with the player with same name as [p] 
-   replaced by [p] with last_move set to [move]*)
+(**[update_player_last_move lst p acc] is [lst] with the player with same name 
+   as [p] replaced by [p] with last_move set to [move]*)
 let rec update_player_last_move lst p move acc =
   match lst with 
   | [] -> List.rev acc
@@ -238,37 +239,7 @@ let rec last_moves lst acc =
   | [] -> List.rev acc
   | h :: t -> last_moves t ((name h, last_move h) :: acc)
 
-let rec string_wallets wallets acc =
-  match wallets with 
-  | [] -> acc
-  | (n, m) :: t -> string_wallets t (acc ^ n ^ "'s walllet: " ^ string_of_int (m) 
-                                     ^ " ")
-
-let rec string_last_moves last_moves acc =
-  match last_moves with
-  | [] -> acc
-  | (n, Default) :: t -> string_last_moves t (acc ^ n ^ "'s last move: Default")
-  | (n, Fold) :: t -> string_last_moves t (acc ^ n ^ "'s last move: Fold")
-  | (n, Check) :: t -> string_last_moves t (acc ^ n ^ "'s last move: Check")
-  | (n, Call) :: t -> string_last_moves t (acc ^ n ^ "'s last move: Call")
-  | (n, (Raise r)) :: t -> string_last_moves t (acc ^ n ^ "'s last move: Raise " ^ string_of_int r)
-  | (n, Allin) :: t -> string_last_moves t (acc ^ n ^ "'s last move: Alllin ")
-  | (n, Quit) :: t -> string_last_moves t (acc ^ n ^ "'s last move: Quit ")
-  | (n, Continue) :: t -> string_last_moves t (acc ^ n ^ "'s last move: Continue ")
-
 let get_info st p =
-  (* print_endline ("printing info for player " ^ name p);
-     print_endline ("wallet: " ^ string_of_int (money p));
-     let oth_wals = other_wallets (active_players st) (name p) [] in 
-     print_endline ("o_wallets: " ^ string_wallets oth_wals "");
-     print_endline ("m_bet: " ^ string_of_int (max_bet st));
-     print_endline ("c_bet: " ^ string_of_int (current_bet st));
-     print_endline ("m_betted: " ^ string_of_int (money_betted p));
-     print_endline ("b_pool: " ^ string_of_int (betting_pool st));
-     let l_moves = last_moves (active_players st) [] in
-     print_endline ("old_moves: " ^ string_last_moves l_moves "");
-     print_endline ("h_cards: " ^ to_string (hand p));
-     print_endline("t_cards: " ^ to_string (table st)); *)
   {
     wallet = money p;
     o_wallets = other_wallets (active_players st) (name p) [];
