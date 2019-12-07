@@ -10,9 +10,10 @@ let make_easy_move st info =
     betting information of the game given by [info] *)
 let check_worth_med info rank =
   let max_risk = info.m_bet * rank / 5 in
+  if info.c_bet = 50 then "call" else
   if info.c_bet < max_risk then 
     "raise " ^ (max_risk - info.c_bet |> string_of_int) else
-  if info.m_betted = info.c_bet then "call" else "fold" 
+  if info.m_betted = info.c_bet then "call" else "fold"
 
 let make_med_move st info = 
   Random.self_init ();
