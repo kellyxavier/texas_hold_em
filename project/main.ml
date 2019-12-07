@@ -183,7 +183,7 @@ let show_info p st =
 (** [show_flop st] reveals the table with the newly-added flop to all 
     players. *)
 let show_flop st =
-  ANSITerminal.erase Screen;
+  ANSITerminal.erase Above;
   print_endline "We will now reveal the flop.";
   print_endline ("The table currently has the cards: \n" ^ 
                  (st |> table |> to_string));
@@ -195,6 +195,7 @@ let show_flop st =
 (** [show_river st] reveals the table with the newly-added river to all 
     players. *)
 let show_river st =
+  ANSITerminal.erase Above;
   print_endline "We will now reveal the river.";
   print_endline ("The table currently has the cards: \n" ^ 
                  (st |> table |> to_string));
@@ -206,6 +207,7 @@ let show_river st =
 (** [show_turn st] reveals the table with the newly-added turn to all 
     players. *)
 let show_turn st =
+  ANSITerminal.erase Above;
   print_endline "We will now reveal the turn.";
   print_endline ("The table currently has the cards: \n" ^ 
                  (st |> table |> to_string));
@@ -332,7 +334,7 @@ let rec everyone_gets_a_turn players st =
       match players with
       | [] -> st
       | h::t -> 
-        ANSITerminal.erase Screen;
+        ANSITerminal.erase Above;
         if money h = 0 then everyone_gets_a_turn t st 
         else if one_no_money players then st
         else if is_ai h 
@@ -366,7 +368,7 @@ let rec everyone_gets_a_turn players st =
               print_endline "What would you like to do?";         
               print_string "> ";
               match read_line () with
-              | str -> (*ANSITerminal.erase Screen; *)
+              | str -> 
                 let act = execute str h st in 
                 match act with
                 | (st', raised) -> 
@@ -386,7 +388,7 @@ and continued_betting players st =
       | [] -> failwith "betting without players"
       | h :: [] -> st
       | h::t -> 
-        ANSITerminal.erase Screen;
+        ANSITerminal.erase Above;
         if money h = 0 then continued_betting t st else 
           begin
             if is_ai h 
@@ -421,7 +423,7 @@ and continued_betting players st =
                   print_string "> ";
                   begin 
                     match read_line () with
-                    | str -> (*ANSITerminal.erase Screen; *)
+                    | str -> 
                       let act = execute str h st in 
                       match act with
                       | (st', raised) -> 
@@ -526,6 +528,7 @@ let net_winnings winners money =
   | [] -> failwith "no winner"
   | h :: _ -> money - (money_betted h)
 
+(** [folded_players st] is a player list consisting only of the players who folded in [st] *)
 let folded_players st =
   let act_ps_names = List.map (fun p -> name p) (active_players st) in
   List.filter (fun p -> not (List.mem (name p) act_ps_names)) (all_players st)
@@ -542,7 +545,7 @@ let rec show_win_info st winners won_money aps =
 
 (** [show_down st] is the state after comparing all the players' hands to determine the winner(s)*)
 let show_down st =
-  ANSITerminal.erase Screen;
+  ANSITerminal.erase Above;
   if only_one_player st
   then show_win_info st (active_players st) (betting_pool st) (active_players st) 
   else
@@ -719,7 +722,10 @@ let rec get_players () =
 (** [main ()] clears the screen and prompts for the game to play, then begins 
     to collect information over the players. *)
 let main () =
-  ANSITerminal.erase Screen;
-  (print_string "\n\nWelcome to Texas Hold 'Em!"); get_players () 
+  ANSITerminal.erase Above;
+  print_endline "\n\nWelcome to Texas Hold 'Em!";
+  print_endline "House Rules: You cannot bet more than the wallet of the poorest player.";
+  print_endline "Honor System: Please do not scroll up to see your opponents' private information.";
+  get_players () 
 
 let () = main ()
