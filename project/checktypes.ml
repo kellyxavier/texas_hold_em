@@ -34,7 +34,7 @@ module type PlayerSig = sig
     | None
   type player
   val create_player : string -> player
-  val create_ai_player : string -> player
+  val create_ai_player : Command.difficulty -> player
   val name : player -> string
   val hand : player -> deck
   val change_hand : player -> deck-> player

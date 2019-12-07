@@ -149,7 +149,7 @@ let state_round_v_tests = [
 ]
 
 let p1 = create_player "valeria"
-let ai = create_ai_player "med"
+let ai = create_ai_player Med
 
 let player_tests = [
   "player's initial money betted is 0 " >:: (fun _ -> 
@@ -179,8 +179,8 @@ let player_tests = [
   "can reset player's last move" >:: (fun _ -> assert_equal Default
                                          (reset_last_move p1 |> last_move));
 
-  (* "AI's name is set correctly " >:: (fun _ -> 
-      assert_equal "The AI" (ai |> name)); *)
+  "AI's name is set correctly " >:: (fun _ -> 
+      assert_equal "Medium AI" (ai |> name)); 
   "AI's initial hand is empty " >:: (fun _ -> 
       assert_equal empty (ai |> hand));
   "AI's inital money is 5000 " >:: (fun _ -> 
