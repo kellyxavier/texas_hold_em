@@ -675,7 +675,8 @@ let rec pick_diff st =
 
 (** [next_game players] is the state of the next game with [players] in the game *)
 let rec next_game players = 
-  if List.length players <= 1 then ()
+  if List.length players = 0 then print_endline "Thanks for playing!"
+  else if List.length players <= 1 then print_endline "Can't play a game with only one player! Thanks for playing!!"
   else players |> remove_blinds |> rotate |> new_round |> start_game
 
 (** [start_game st] plays a game starting in [st]. *)
