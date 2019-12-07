@@ -6,6 +6,11 @@ open Hands
 open Rank_hand
 open Ai
 
+(** [more_than_one_player st] is true if there's more than one active player
+    in the game and false otherwise. *)
+let only_one_player st =
+  (active_players st) |> List.length < 2
+
 (** [is_ai_name n] is true if [n] is either "Easy AI", "Medium AI", or "Hard AI"
     and false otherwise. *)
 let is_ai_name n =
@@ -17,7 +22,7 @@ let rec get_valid_name lst i =
   print_endline ("Player " ^ (string_of_int i) ^
                  ": enter your name\nNote: your name must be unique.");
   print_string "> ";
-  match read_line () with
+  match String.trim (read_line ()) with
   | "" ->
     begin 
       print_endline "You cannot have an empty name. Please try again.";
@@ -36,35 +41,17 @@ let rec get_valid_name lst i =
       end
     else n
 
-(** [create_player_list x acc] is the player list built off of [acc] 
-    consisting of [x] players. *)
-let rec create_player_list x acc =
+(** [create_player_list x names acc] is the player list built off of [acc] 
+    consisting of [x] players with names listed in [names]. *)
+let rec create_player_list x names acc =
   if x = 0 then List.rev acc
-  else create_player_list (x - 1) (
-      (List.length acc 
-       |> (+) 1 
-       |> get_valid_name (List.map (fun p -> name p) acc) 
-       |> create_player
-      ) :: acc)
-
-(** [more_than_one_player st] is true if there's more than one active player
-    in the game and false otherwise. *)
-let only_one_player st =
-  (active_players st) |> List.length < 2
-
-(** [remove_blinds_aux lst acc] is [lst] without any blinds on the players. *)
-let rec remove_blinds_aux lst acc =
-  match lst with 
-  | h :: t -> remove_blinds_aux t (change_blind h None :: acc)
-  | _ -> List.rev acc
-
-(** [remove_blinds lst] is [lst] with all blinds removed from players. *)
-let rec remove_blinds lst =
-  remove_blinds_aux lst []
+  else 
+    let n = get_valid_name names (List.length acc + 1) in
+    create_player_list (x - 1) (n :: names) ((create_player n) :: acc) 
 
 (** [rotate lst] is [lst] rotated left once. *)
 let rotate lst =
-  match remove_blinds lst with
+  match lst with
   | [] -> failwith "cannot rotate an empty list"
   | h :: t -> t @ [h]
 
@@ -79,7 +66,6 @@ let rec rotate_first_round lst =
 let rec place_last_aux lst p acc =
   match lst with
   | [] -> failwith "player is not in the list"
-  | h :: [] -> (List.rev acc) @ [h]
   | h :: t -> 
     if name h = name p 
     then t @ (List.rev acc) @ [h] 
@@ -101,6 +87,16 @@ let set_blinds_aux lst  =
     having a small blind and the second player having a big blind. *)
 let set_blinds st =
   change_active_players st (set_blinds_aux (active_players st))
+
+(** [remove_blinds_aux lst acc] is [lst] without any blinds on the players. *)
+let rec remove_blinds_aux lst acc =
+  match lst with 
+  | h :: t -> remove_blinds_aux t (change_blind h None :: acc)
+  | _ -> List.rev acc
+
+(** [remove_blinds lst] is [lst] with all blinds removed from players. *)
+let rec remove_blinds lst =
+  remove_blinds_aux lst []
 
 (** [blinded p] is [p] with the appropriate amount of money removed for 
     its blind or lackthereof. Small blinds are worth $25, big blinds are $50. *)
@@ -499,10 +495,18 @@ let rec print_cards lst acc =
   | [] -> acc
   | h :: t -> print_cards t (acc ^ "\n" ^ name h ^ " had the following cards:\n" ^ (h |> hand |> to_string))
 
-(** [show_win_info st winners won_money aps] is an updated [st] which reflects
+(** [net_winnings winners money] is the net amount of [money] won be each 
+    [winner] since the beginning of the current game. *)
+let net_winnings winners money =
+  match winners with
+  | [] -> failwith "no winner"
+  | h :: _ -> money - (money_betted h)
+
+(** [show_win_info st winners won_money_total won_money_net aps] is an updated [st] which reflects
     the winning status of [winners]. *)
 let rec show_win_info st winners won_money aps =
-  print_endline ((names_to_string (List.length winners > 1) winners "") ^ " won $" ^ (string_of_int won_money) ^ " in this round of poker!"); 
+  let net = net_winnings winners won_money in
+  print_endline ((names_to_string (List.length winners > 1) winners "") ^ " won $" ^ string_of_int net ^ " in this round of poker!"); 
   change_active_players st (split_pot st (st |> active_players) winners won_money [])
 
 (** [show_down st] is the state after comparing all the players' hands to determine the winner(s)*)
@@ -512,6 +516,7 @@ let show_down st =
   else
     begin 
       let winners = show_down_aux st (active_players st) 0 [] in
+      ANSITerminal.erase Screen;
       print_endline ("These were the final cards on the table:\n" ^ (st |> table |> to_string));
       print_endline (print_cards (active_players st) "");
       show_win_info st winners (betting_pool st / List.length winners) 
@@ -626,16 +631,18 @@ let rec pick_diff st =
   | str -> 
     match str with
     | exception Empty -> 
-      (pick_diff st)
-    | exception Malformed ->
-      print_endline "We didn't understand that";
       pick_diff st
+    | exception Malformed ->
+      begin
+        print_endline "Sorry, we didn't understand that.";
+        pick_diff st
+      end
     | _ -> add_ai st (diff str)
 
 (** [next_game players] is the state of the next game with [players] in the game *)
 let rec next_game players = 
   if List.length players <= 1 then ()
-  else players |> rotate |> new_round |> start_game
+  else players |> remove_blinds |> rotate |> new_round |> start_game
 
 (** [start_game st] plays a game starting in [st]. *)
 and start_game st =
@@ -676,7 +683,7 @@ let rec get_players () =
     if (x > 10 || x < 1) 
     then (print_endline "You must enter a number between 1 and 10."; 
           get_players () )
-    else start_game (create_player_list x [] |> new_round)
+    else start_game (create_player_list x [] [] |> new_round)
 
 (** [main ()] clears the screen and prompts for the game to play, then begins 
     to collect information over the players. *)
