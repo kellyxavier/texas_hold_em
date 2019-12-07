@@ -11,6 +11,13 @@ open Ai
 let only_one_player st =
   (active_players st) |> List.length < 2
 
+(** [only_ais players] is true if all players in [players] are AIs and false
+    otherwise. *)
+let rec only_ais players =
+  match players with
+  | [] -> true
+  | h :: t -> if is_ai h then only_ais t else false
+
 (** [all_no_money players] is true if no player in [players] has money and 
     false otherwise. *)
 let rec all_no_money players  =
@@ -687,8 +694,8 @@ let rec pick_diff st =
 
 (** [next_game players] is the state of the next game with [players] in the game *)
 let rec next_game players = 
-  if List.length players = 0 then print_endline "Thanks for playing!"
-  else if List.length players <= 1 then print_endline "Can't play a game with only one player! Thanks for playing!!"
+  if List.length players = 0 || only_ais players 
+  then print_endline "Thanks for playing!"
   else players |> remove_blinds |> rotate |> new_round |> start_game
 
 (** [start_game st] plays a game starting in [st]. *)
