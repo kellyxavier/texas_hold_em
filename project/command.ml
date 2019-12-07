@@ -20,7 +20,8 @@ exception Empty
 exception Malformed
 
 let parse str = 
-  let phrase = String.trim str in
+  let str_lower = String.lowercase_ascii str in
+  let phrase = String.trim str_lower in
   if phrase = "" then raise Empty else
     let word_list = String.split_on_char ' ' (phrase) in
     let trimmed_word_list = List.filter (fun s -> s <> "") word_list in
@@ -39,7 +40,8 @@ let parse str =
     else raise Malformed
 
 let diff str =
-  let phrase = String.trim str in
+  let str_lower = String.lowercase_ascii str in
+  let phrase = String.trim str_lower in
   if phrase = "" then raise Empty
   else if phrase = "easy" then Easy
   else if phrase = "medium" then Med

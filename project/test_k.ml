@@ -25,7 +25,7 @@ let player_tests =
         assert_equal empty (p1 |> hand));
     "player's inital money is 5000 " >:: (fun _ -> 
         assert_equal 5000 (p1 |> money));
-    "player's initial status is Active " >:: (fun _ -> 
+    "player's initial status is Betting " >:: (fun _ -> 
         assert_equal Betting (p1 |> status));
     "player's initial blind is None " >:: (fun _ -> 
         assert_equal None (p1 |> blind));
