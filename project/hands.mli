@@ -6,10 +6,15 @@ val hc_high : deck
 val hc_ace : deck
 val hc_low : deck
 
-(*==================PAIR HANDS===================*)
+(*===================PAIR HANDS===================*)
 val low_pair : deck
 val high_pair : deck
 val ace_pair : deck
+
+(*==================TRIO HANDS====================*)
+val low_trio : deck
+val high_trio : deck
+val ace_trio : deck
 
 (*================FULL HANDS BELOW================*)
 (*================HIGH VALUE HANDS================*)

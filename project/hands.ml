@@ -13,6 +13,24 @@ let high_pair = empty |> insert Clubs 10 |> insert Hearts 10
 
 let ace_pair = empty |> insert Spades 1 |> insert Diamonds 1
 
+let low_trio = 
+  empty 
+  |> insert Clubs 2 
+  |> insert Spades 2 
+  |> insert Diamonds 2
+
+let high_trio = 
+  empty 
+  |> insert Hearts 13 
+  |> insert Clubs 13 
+  |> insert Spades 13
+
+let ace_trio =
+  empty
+  |> insert Hearts 1
+  |> insert Spades 1
+  |> insert Diamonds 1
+
 (*================FULL HANDS BELOW================*)
 (*================HIGH VALUE HANDS================*)
 
