@@ -118,14 +118,19 @@ let state_round_v_tests = [
       assert_equal [player1; change_last_move player2 Fold; player3] 
         (fold test_state1 player2 |> all_players)); 
   "all_in removes all of the player's money" >:: (fun _ -> assert_equal 0
-                                                     (all_in test_state1 player1 |> active_players |> get_money player1)(*~printer:string_of_int*)); 
+                                                     (all_in test_state1 player1
+                                                      |> active_players 
+                                                      |> get_money player1)); 
   "all_in correctly increases the better pool" >:: (fun _ -> assert_equal 5000
-                                                       (all_in test_state1 player1 |> betting_pool)(*~printer:string_of_int*));
+                                                       (all_in test_state1 
+                                                          player1 
+                                                        |> betting_pool));
   "all_in correctly increase how much the player has betted" >:: (fun _ -> 
       assert_equal 5000
-        (all_in test_state1 player1 |> active_players |> get_betted player1)(*~printer:string_of_int*));
+        (all_in test_state1 player1 |> active_players |> get_betted player1));
   "cannot all_in more than the max bet" >:: (fun _ -> assert_raises InvalidBet
-                                                (fun _ -> all_in test_state2 player1));
+                                                (fun _ -> all_in test_state2 
+                                                    player1));
 
   "raise i correctly updates player wallet" >:: (fun _ -> 
       assert_equal 4875
@@ -134,9 +139,12 @@ let state_round_v_tests = [
       assert_equal 125 
         (raise 25 test_state2 player4 |> active_players |> get_betted player4));
   "raise i correctly updates the betting pool" >:: (fun _ -> assert_equal 75
-                                                       (raise 25 test_state2 player4 |> betting_pool));
+                                                       (raise 25 test_state2 
+                                                          player4 |> 
+                                                        betting_pool));
   "cannot raise more than the max bet" >:: (fun _ -> assert_raises InvalidBet
-                                               (fun _ -> raise 476 test_state2 player4));
+                                               (fun _ -> raise 476 test_state2 
+                                                   player4));
 
 ]
 
@@ -147,7 +155,8 @@ let player_tests = [
   "player's initial money betted is 0 " >:: (fun _ -> 
       assert_equal 0 (p1 |> money_betted));
   "can increment money betted" >:: (fun _ -> assert_equal 50 
-                                       (change_money_betted p1 50 |> money_betted));
+                                       (change_money_betted p1 50 
+                                        |> money_betted));
   "can reset money betted" >:: (fun _ -> assert_equal 0
                                    (reset_money_betted p1 |> money_betted));
 

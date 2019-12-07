@@ -76,21 +76,10 @@ let players_left = [List.nth (st |> active_players) 1;
                     List.nth (st |> active_players) 3]
 let dk = empty |> insert Clubs 2 |> insert Diamonds 7 |> insert Diamonds 6
 
-let p1 = create_player "A"
-let p2 = create_player "B"
-let p3 = create_player "C"
-let p_lst1 = [p1; p2; p3]
-let test_state1 = new_round p_lst1
-let test_state_cb_20 = let s' = change_current_bet test_state1 20 
-  in change_betting_pool s' 20
-let test_state_p2_quit = quit test_state1 p2
-let test_state_p2_fold = fold test_state1 p2
-let test_state_p1_check = check test_state1 p1
-let test_state_p2_call = call test_state_cb_20 p2
-let test_state_p2_allin = all_in test_state1 p2
-let test_state_p1_raise_2000 = raise 2000 test_state1 p1
-let test_state_p2_call_2000 = call test_state_p1_raise_2000 p2
-let test_state_p2_raise_1000 = raise 1000 test_state1 p2
+let rec get_player i lst =
+  match lst with 
+  | [] -> failwith "empty list"
+  | h :: t -> if i = 1 then h else get_player (i-1) t
 
 let rec get_money p lst =
   match lst with
@@ -107,15 +96,29 @@ let rec get_money_betted p lst =
   | [] -> failwith "empty list"
   | h :: t -> if name h = name p then money_betted h else get_money_betted p t
 
-let rec get_player i lst =
-  match lst with 
-  | [] -> failwith "empty list"
-  | h :: t -> if i = 1 then h else get_player (i-1) t
-
 let rec player_names  acc lst=
   match lst with 
   | [] -> List.rev acc
   | h :: t -> player_names (name h :: acc) t
+
+let p_i1 = create_player "A"
+let p_i2 = create_player "B"
+let p_i3 = create_player "C"
+let p_lst1 = [p_i1; p_i2; p_i3]
+let test_state1 = new_round p_lst1
+let p1 = get_player 1 (active_players test_state1)
+let p2 = get_player 2 (active_players test_state1)
+let p3 = get_player 3 (active_players test_state1)
+let test_state_cb_20 = let s' = change_current_bet test_state1 20 
+  in change_betting_pool s' 20
+let test_state_p2_quit = quit test_state1 p2
+let test_state_p2_fold = fold test_state1 p2
+let test_state_p1_check = check test_state1 p1
+let test_state_p2_call = call test_state_cb_20 p2
+let test_state_p2_allin = all_in test_state1 p2
+let test_state_p1_raise_2000 = raise 2000 test_state1 p1
+let test_state_p2_call_2000 = call test_state_p1_raise_2000 p2
+let test_state_p2_raise_1000 = raise 1000 test_state1 p2
 
 let state_tests =
   [
@@ -145,17 +148,20 @@ let state_tests =
     state 2 cards" >:: (fun _ -> 
         assert_equal 4 (valid_player_list_1 |> new_round |> active_players |> 
                         List.map (fun x -> to_list(hand x)) |> 
-                        List.filter (fun x -> List.length x = 2)|> List.length));
+                        List.filter (fun x -> List.length x = 2) |> 
+                        List.length));
     "new round with input list of 10 players assigns each player in resulting 
     state 2 cards (ie border case)" >:: (fun _ -> 
         assert_equal 10 (valid_player_list_2 |> new_round |> active_players |> 
                          List.map (fun x -> to_list(hand x)) |> 
-                         List.filter (fun x -> List.length x = 2)|> List.length));
+                         List.filter (fun x -> List.length x = 2)|> 
+                         List.length));
     "new round with input list of 2 players assigns each player in resulting 
     state 2 cards (ie border case)" >:: (fun _ -> 
         assert_equal 2 (valid_player_list_3 |> new_round |> active_players |> 
                         List.map (fun x -> to_list(hand x)) |> 
-                        List.filter (fun x -> List.length x = 2)|> List.length));
+                        List.filter (fun x -> List.length x = 2)|> 
+                        List.length));
     "new round with input list of 4 players assigns each player in resulting 
     state 2 unique cards" >:: (fun _ -> 
         assert_equal 8 (valid_player_list_1 |> new_round |> active_players |> 
@@ -234,7 +240,7 @@ let state_tests =
           (test_state_p2_quit |> all_players |> player_names []));
     "check when current bet not equal to money betted should raise InvalidBet" 
     >:: (fun _ -> 
-        assert_raises (InvalidBet) (fun () -> check test_state_cb_20 p2 ));
+        assert_raises (InvalidBet) (fun () -> check test_state_cb_20 p2));
     "player's money is changed correctly when player calls" >:: (fun _ ->
         assert_equal 4980 (test_state_p2_call |> active_players 
                            |> get_money p2));
@@ -258,25 +264,25 @@ let state_tests =
     "last move of player is Allin after the player goes allin" >:: (fun _ -> 
         assert_equal Allin
           (test_state_p2_allin |> active_players |> get_last_move p2));
-    "last move of player is Raise 1000 after the player raise 1000" >:: (fun _ -> 
-        assert_equal (Raise 1000)
-          (test_state_p2_raise_1000 |> active_players |> get_last_move p2));
+    "last move of player is Raise 1000 after the player raise 1000" >:: 
+    (fun _ -> assert_equal (Raise 1000)
+        (test_state_p2_raise_1000 |> active_players |> get_last_move p2));
     "get_info evaluates to the appropriate info record for p1 when p1 checks 
        and p2 and p3 have not made a move yet" >:: (fun _ -> 
         assert_equal (let i = get_info test_state1 p1 in 
                       {i with old_moves = [name p1, Check; name p2, Default; 
                                            name p3, Default]})
           (get_info test_state_p1_check p1));
-    (* "get_info evaluates to the appropriate info record for p1 when 
-       p1 raises 2000 and p2 ad p3 have not made a move yet" >:: (fun _ -> 
-        assert_equal (let i = get_info test_state1 
-                          (get_player 1 (active_players test_state1)) in 
-                      {i with wallet = 3000; c_bet = 2000; m_betted = 2000; b_pool = 2000; 
+    "get_info evaluates to the appropriate info record for p1 when 
+       p1 raises 2000 and p2 and p3 have not made a move yet" >:: (fun _ -> 
+        assert_equal (let i = get_info test_state1 p1 in 
+                      {i with wallet = 3000; c_bet = 2000; m_betted = 2000; 
+                              b_pool = 2000; 
                               old_moves = [name p1, (Raise 2000); 
                                            name p2, Default; 
                                            name p3, Default]})
           (get_info test_state_p1_raise_2000 
-             (get_player 1 (active_players test_state_p1_raise_2000)))); *)
+             (get_player 1 (active_players test_state_p1_raise_2000))));
 
   ]
 
