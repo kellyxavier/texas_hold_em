@@ -125,21 +125,15 @@ let take_blind_money st =
     much money they have left. *)
 let display_blind_money p =
   match blind p with
-  | Small -> print_endline ("\n" ^ name p ^ 
-                            ", you are small blind, so you automatically bet $25.\nYou now only have $" 
-                            ^ string_of_int (money p) ^ " left.")
-  | Big -> print_endline ("\n" ^ name p ^ 
-                          ", you are big blind, so you automatically bet $50.\nYou now only have $" 
-                          ^ string_of_int (money p) ^ " left.")
+  | Small -> 
+    print_endline ("\n" ^ name p ^ 
+      ", you are small blind, so you automatically bet $25.\nYou now have $" 
+      ^ string_of_int (money p) ^ " left.")
+  | Big -> 
+    print_endline ("\n" ^ name p ^ 
+      ", you are big blind, so you automatically bet $50.\nYou now have $" 
+      ^ string_of_int (money p) ^ " left.")
   | None -> print_string ""
-
-(** [print_prev_moves players] prints out the last moves of eacher player in
-    [players]. *)
-let rec print_prev_moves players =
-  match players with
-  | [] -> ()
-  | h :: t -> print_endline (name h ^ ": " ^ move_to_string (last_move h));
-    print_prev_moves t
 
 (** [show_blind_info players] prints out the blind information of each
     player in [players]. *)
@@ -153,10 +147,18 @@ let rec show_blind_info players=
 let blinds st =
   let st' = st |> set_blinds |> take_blind_money in
   show_blind_info (active_players st');
-  print_endline "\nPress enter when all are ready to begin.";
+  print_endline "\nPress enter when everyone is ready to begin.";
   print_string "> ";
   match read_line () with
   | _ -> st'
+
+(** [print_prev_moves players] prints out the last moves of eacher player in
+    [players]. *)
+let rec print_prev_moves players =
+  match players with
+  | [] -> ()
+  | h :: t -> print_endline (name h ^ ": " ^ move_to_string (last_move h));
+    print_prev_moves t
 
 (** [show_info p st] prints the private information of player [p]*)
 let show_info p st = 
@@ -178,55 +180,77 @@ let show_info p st =
                  string_of_int (current_bet st - money_betted p) ^
                  " to stay in the game.\n")
 
-
-
-  (*
-  let money = money p in let hand = hand p |> to_string in 
-  let t = st |> table |> to_string in
-  print_endline 
-    ("These are the last moves of each player currently at the table:");
-  print_prev_moves (active_players st);
-  print_endline 
-    ("\nYou have $" ^ (string_of_int money) ^ " and your cards are:\n" ^ hand);
-  if t = "" then print_endline "There are no cards currently on the table"
-  else print_endline ("The table currently has the cards: \n" ^ t) *)
-
 (** [show_flop st] reveals the table with the newly-added flop to all 
     players. *)
 let show_flop st =
+  ANSITerminal.erase Screen;
   print_endline "We will now reveal the flop.";
   print_endline ("The table currently has the cards: \n" ^ 
-                 (st |> table |> to_string))
+                 (st |> table |> to_string));
+  print_endline "Press enter when everyone is ready to continue";
+  print_string "> ";
+  match read_line () with
+  | _ -> ()
 
 (** [show_river st] reveals the table with the newly-added river to all 
     players. *)
 let show_river st =
   print_endline "We will now reveal the river.";
   print_endline ("The table currently has the cards: \n" ^ 
-                 (st |> table |> to_string))
+                 (st |> table |> to_string));
+  print_endline "Press enter when everyone is ready to continue";
+  print_string "> ";
+  match read_line () with
+  | _ -> ()
 
 (** [show_turn st] reveals the table with the newly-added turn to all 
     players. *)
 let show_turn st =
   print_endline "We will now reveal the turn.";
   print_endline ("The table currently has the cards: \n" ^ 
-                 (st |> table |> to_string))
+                 (st |> table |> to_string));
+  print_endline "Press enter when everyone is ready to continue";
+  print_string "> ";
+  match read_line () with
+  | _ -> ()
+
+(** [quit_error] is a message when the player tries to quit at the 
+    inappropriate time. *)
+let quit_error =
+  "You cannot quit in the middle of the game. Please try again!\n> "
+
+(** [continue_error] is a message when the player tries to continue at the 
+    inappropriate time. *)
+let continue_error =
+  "Please enter a betting action."
+
+(** [check_error] is a message when the player tries to check at the 
+    inappropriate time. *)
+let check_error =
+  "You cannot check when the current bet is not 0. Please try again!"
+
+(** [allin_error] is a message when the player tries to go all in when they 
+    canot raise so much money. *)
+let allin_error =
+  "You may only bet an amount between $0 and the wallet of the poorest player. "
+  ^ "Please try again!"
 
 (** [execute str p st] inteprets [p]'s [str] in the context of a regular betting
-    round and returns an updated [st] which reflects it. *)
+    round and returns a pair of an updated [st] which reflects the changes made
+    and whether it was a raise or not. *)
 let rec execute str p st =
   match parse str with
   | Quit -> 
     begin
-        print_endline "You cannot quit in the middle of the game. Please try again!";
-  print_string "> ";
+      print_endline quit_error;
+      print_string "> ";
       match read_line () with
       | str -> execute str p st
     end
   | Continue -> 
     begin
-        print_endline "Please enter a betting action.";
-  print_string "> ";
+      print_endline continue_error;
+      print_string "> ";
       match read_line () with
       | str -> execute str p st
     end
@@ -234,27 +258,27 @@ let rec execute str p st =
   | Check -> 
     begin
       match check st p with 
+      | st' -> (st', false)
       | exception InvalidBet -> 
         begin
-            print_endline "You cannot check when the current bet is not 0. Please try again!";
-  print_string "> ";
+          print_endline check_error;
+          print_string "> ";
           match read_line () with
           | str -> execute str p st
         end
-      | st' -> (st', false)
     end
   | Call -> (call st p, false)
   | Allin -> 
     begin
       match all_in st p with 
+      | st' -> (st', false)
       | exception InvalidBet -> 
         begin
-          print_endline "You may only bet an amount between $0 and the wallet of the poorest player. Please try again!";
+          print_endline allin_error;
           print_string "> ";
           match read_line () with
           | str -> execute str p st
         end
-      | st' -> (st', false)
     end
   | Raise i -> 
     begin
@@ -502,21 +526,28 @@ let net_winnings winners money =
   | [] -> failwith "no winner"
   | h :: _ -> money - (money_betted h)
 
+let folded_players st =
+  let act_ps_names = List.map (fun p -> name p) (active_players st) in
+  List.filter (fun p -> not (List.mem (name p) act_ps_names)) (all_players st)
+
 (** [show_win_info st winners won_money_total won_money_net aps] is an updated [st] which reflects
     the winning status of [winners]. *)
 let rec show_win_info st winners won_money aps =
+  let f_players = folded_players st in
+  let f_names = names_to_string (List.length f_players > 1) f_players "" in
   let net = net_winnings winners won_money in
+  print_endline (f_names ^ " folded in this round of poker.");
   print_endline ((names_to_string (List.length winners > 1) winners "") ^ " won $" ^ string_of_int net ^ " in this round of poker!"); 
   change_active_players st (split_pot st (st |> active_players) winners won_money [])
 
 (** [show_down st] is the state after comparing all the players' hands to determine the winner(s)*)
 let show_down st =
+  ANSITerminal.erase Screen;
   if only_one_player st
   then show_win_info st (active_players st) (betting_pool st) (active_players st) 
   else
     begin 
       let winners = show_down_aux st (active_players st) 0 [] in
-      ANSITerminal.erase Screen;
       print_endline ("These were the final cards on the table:\n" ^ (st |> table |> to_string));
       print_endline (print_cards (active_players st) "");
       show_win_info st winners (betting_pool st / List.length winners) 
