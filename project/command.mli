@@ -18,6 +18,12 @@ type command =
   | Allin
   | Raise of amount
 
+(** The type [difficulty] represents the difficulty of the AI desired. *)
+type difficulty =
+  | Easy
+  | Med
+  | Hard
+
 (** Raised when an empty command is parsed. *)
 exception Empty
 
@@ -47,6 +53,12 @@ exception Malformed
     "check" and there is any other words following the command,
     or if the verb is "go" and there is no amount following the command.*)
 val parse : string -> command
+
+(** [diff str] parses a player's input into a [difficulty]. It accepts easy,
+    medium, or hard.
+    Raises: [Empty] if [str] is the empty string or contains only spaces. 
+    Raises: [Malformed] if the command is malformed. *)
+val diff : string -> difficulty
 
 (** [move_to_string m] returns m as a string in the past tense. Default is 
     "Has not made a move yet" *)

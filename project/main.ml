@@ -194,68 +194,6 @@ let show_turn st =
   print_endline ("The table currently has the cards: \n" ^ 
                  (st |> table |> to_string))
 
-(** [execute_all_in str p st] interprets [p]'s input [str] in the context that a 
-    player has gone all in and returns [st] that reflects as such. *)
-let rec execute_all_in str p st =
-  match parse str with
-  | Quit -> 
-    begin 
-        print_endline "You cannot quit in the middle of the game. Please try again!";
-  print_string "> ";
-      match read_line () with
-      | str -> execute_all_in str p st
-    end
-  | Continue -> 
-    begin
-        print_endline "Please enter a betting action.";
-  print_string "> ";
-      match read_line () with
-      | str -> execute_all_in str p st
-    end
-  | Fold -> (fold st p, false)
-  | Check -> 
-    begin
-      match check st p with 
-      | exception InvalidBet -> 
-        begin
-            print_endline "You cannot check when the current bet is not 0. Please try again!";
-  print_string "> ";
-          match read_line () with
-          | str -> execute_all_in str p st
-        end
-      | st' -> (st', false)
-    end
-  | Call -> (call st p, false)
-  | Allin -> 
-    begin
-        print_endline "Please either quit, call, or check";
-  print_string "> ";
-      match read_line () with
-      | str -> execute_all_in str p st
-    end
-  | Raise i -> 
-    begin
-        print_endline "Please either quit, call, or check";
-  print_string "> ";
-      match read_line () with
-      | str -> execute_all_in str p st
-    end
-  | exception Empty -> 
-    begin
-        print_endline "You cannot enter an empty command. Please try again!";
-  print_string "> ";
-      match read_line () with
-      | str -> execute_all_in str p st
-    end
-  | exception Malformed -> 
-    begin
-        print_endline "We did not recognize that. Please try again!";
-  print_string "> ";
-      match read_line () with
-      | str -> execute_all_in str p st
-    end
-  | Default -> failwith "player-entered command should never parse to Default"
-
 (** [execute str p st] inteprets [p]'s [str] in the context of a regular betting
     round and returns an updated [st] which reflects it. *)
 let rec execute str p st =
@@ -352,17 +290,18 @@ let rec everyone_gets_a_turn players st =
       match players with
       | [] -> st
       | h::t -> 
+        ANSITerminal.erase Screen;
         if money h = 0 then everyone_gets_a_turn t st 
         else if one_no_money players then st
         else if is_ai h 
         then 
           begin
             let act = 
-              if name h = "easy" then 
+              if name h = "Easy AI" then 
                 execute (make_easy_move st (get_info st h)) h st 
-              else if name h = "hard" then
+              else if name h = "Hard AI" then
                 execute (make_hard_move st (get_info st h)) h st
-              else execute (make_med_move st (get_info st h)) h st  in 
+              else execute (make_med_move st (get_info st h)) h st in 
             match act with
             | (st', raised) -> 
               if raised then continued_betting (st' |> active_players |> place_last h) st' 
@@ -385,7 +324,7 @@ let rec everyone_gets_a_turn players st =
               print_endline "What would you like to do?";         
               print_string "> ";
               match read_line () with
-              | str -> ANSITerminal.erase Screen; 
+              | str -> (*ANSITerminal.erase Screen; *)
                 let act = execute str h st in 
                 match act with
                 | (st', raised) -> 
@@ -404,15 +343,17 @@ and continued_betting players st =
       match players with
       | [] -> failwith "betting without players"
       | h :: [] -> st
-      | h::t -> if money h = 0 then continued_betting t st else 
+      | h::t -> 
+        ANSITerminal.erase Screen;
+        if money h = 0 then continued_betting t st else 
           begin
             if is_ai h 
             then 
               begin
                 let act = 
-                  if name h = "easy" then 
+                  if name h = "Easy AI" then 
                     execute (make_easy_move st (get_info st h)) h st 
-                  else if name h = "hard" then
+                  else if name h = "Hard AI" then
                     execute (make_hard_move st (get_info st h)) h st
                   else execute (make_med_move st (get_info st h)) h st  in 
                 match act with
@@ -438,7 +379,7 @@ and continued_betting players st =
                   print_string "> ";
                   begin 
                     match read_line () with
-                    | str -> ANSITerminal.erase Screen; 
+                    | str -> (*ANSITerminal.erase Screen; *)
                       let act = execute str h st in 
                       match act with
                       | (st', raised) -> 
@@ -530,10 +471,16 @@ let rec split_pot st aps winners won_money acc =
     then split_pot st t winners won_money ((change_money h won_money) :: acc)
     else split_pot st t winners won_money (h :: acc)
 
+(** [print_cards lst acc] prints the cards of all players in [lst]. *)
+let rec print_cards lst acc =
+  match lst with
+  | [] -> acc
+  | h :: t -> print_cards t (acc ^ "\n" ^ name h ^ " had the following cards:\n" ^ (h |> hand |> to_string))
+
 (** [show_win_info st winners won_money aps] is an updated [st] which reflects
     the winning status of [winners]. *)
-let rec show_win_info st winners won_money aps=
-  print_endline ((names_to_string (List.length winners > 1) winners "") ^ " won this round of poker!"); 
+let rec show_win_info st winners won_money aps =
+  print_endline ((names_to_string (List.length winners > 1) winners "") ^ " won $" ^ (string_of_int won_money) ^ " in this round of poker!"); 
   change_active_players st (split_pot st (st |> active_players) winners won_money [])
 
 (** [show_down st] is the state after comparing all the players' hands to determine the winner(s)*)
@@ -543,6 +490,8 @@ let show_down st =
   else
     begin 
       let winners = show_down_aux st (active_players st) 0 [] in
+      print_endline ("These were the final cards on the table:\n" ^ (st |> table |> to_string));
+      print_endline (print_cards (active_players st) "");
       show_win_info st winners (betting_pool st / List.length winners) 
         (active_players st)
     end
@@ -639,12 +588,27 @@ let end_game st =
 (** [add_ai st diff] is an updated [st] with an AI player in the last position 
     of both player lists and difficulty set to [diff].
 
-    [diff] must match either "easy" or "hard" (or "med") if it does not match
-    one of those entries, the AI will default to "med" *)
+    [diff] must match either "Easy AI" or "Hard AI" (or "Medium AI") if it does not match
+    one of those entries, the AI will default to "Medium AI" *)
 let add_ai st diff =
   let st' = change_active_players st 
       (active_players st @ [create_ai_player diff]) in
   change_all_players st' (all_players st' @ [create_ai_player diff])
+
+(** [pick_diff st] asks the player for the level of AI difficulty desired,
+    then returns a state with such an AI. *)
+let rec pick_diff st =
+  print_endline "What level difficulty AI do you want? Easy, medium, or hard?";
+  print_string "> ";
+  match read_line () with
+  | str -> 
+    match str with
+    | exception Empty -> 
+      (pick_diff st)
+    | exception Malformed ->
+      print_endline "We didn't understand that";
+      pick_diff st
+    | _ -> add_ai st (diff str)
 
 (** [next_game players] is the state of the next game with [players] in the game *)
 let rec next_game players = 
@@ -653,7 +617,7 @@ let rec next_game players =
 
 (** [start_game st] plays a game starting in [st]. *)
 and start_game st =
-  let st' = if List.length (active_players st) = 1 then add_ai st "med" 
+  let st' = if List.length (active_players st) = 1 then pick_diff st 
     else st in
   let st'' = st' |> set_blinds |> take_blind_money in
   show_blind_info (active_players st''); 

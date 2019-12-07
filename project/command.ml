@@ -1,4 +1,3 @@
-
 type amount = int
 
 type command = 
@@ -10,6 +9,11 @@ type command =
   | Check 
   | Allin
   | Raise of amount
+
+type difficulty =
+  | Easy
+  | Med
+  | Hard
 
 exception Empty
 
@@ -33,6 +37,14 @@ let parse str =
       | i -> Raise i 
       | exception _ -> raise Malformed
     else raise Malformed
+
+let diff str =
+  let phrase = String.trim str in
+  if phrase = "" then raise Empty
+  else if phrase = "easy" then Easy
+  else if phrase = "medium" then Med
+  else if phrase = "hard" then Hard
+  else raise Malformed
 
 let move_to_string m =
   match m with

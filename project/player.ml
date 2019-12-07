@@ -29,8 +29,10 @@ let create_player n =
    money_betted = 0; last_move = Default; is_ai = false}
 
 let create_ai_player diff = 
-  {name = diff; hand = empty; money = 5000; status = Betting; blind = None;
-   money_betted = 0; last_move = Default; is_ai = true}
+  match diff with
+  | Easy -> {(create_player "") with name = "Easy AI"; is_ai = true}
+  | Med -> {(create_player "") with name = "Medium AI"; is_ai = true}
+  | Hard -> {(create_player "") with name = "Hard AI"; is_ai = true}
 
 let name p =
   p.name

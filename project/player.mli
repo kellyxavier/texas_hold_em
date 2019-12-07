@@ -27,7 +27,7 @@ val create_player : string -> player
 
 (** [create_ai_player] is an AI player. They start with all the same fields as
     a human player, and a name that determines their difficulty. *)
-val create_ai_player : string -> player
+val create_ai_player : Command.difficulty -> player
 
 (** [name p] is the name of player [p]. *)
 val name : player -> string
