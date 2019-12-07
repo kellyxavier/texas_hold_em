@@ -687,7 +687,7 @@ let rec next_game players =
 
 (** [start_game st] plays a game starting in [st]. *)
 and start_game st =
-  let st' = if List.length (active_players st) = 1 then add_ai st "easy" 
+  let st' = if List.length (active_players st) = 1 then add_ai st "med" 
     else st in
   let st'' = st' |> set_blinds |> take_blind_money in
   show_blind_info (active_players st''); 

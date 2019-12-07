@@ -153,7 +153,7 @@ let check_straight ranks =
           (dec e) + 327045 (* Straight [327045-327053] ; Actual (5-13) *)
       else helper (b :: c :: d :: e :: t)
     | _ -> 0 in
-  helper (append_first_four ranks)
+  if List.length ranks > 4 then  helper (append_first_four ranks) else 0
 
 (** [check_twopair ranks] is the point value of two pairs given the list of all
     ranks. If this is 0 then there is no two pairs. *)
