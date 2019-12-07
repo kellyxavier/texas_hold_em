@@ -1,17 +1,32 @@
 open Deck
 
 (*================PARTIAL HANDS (for AI)==========*)
-let hc_high = empty |> insert Spades 13
+let hc_high = 
+  empty 
+  |> insert Spades 13
 
-let hc_ace = empty |> insert Hearts 1
+let hc_ace = 
+  empty 
+  |> insert Hearts 1
 
-let hc_low = empty |> insert Clubs 4
+let hc_low = 
+  empty 
+  |> insert Clubs 4
 
-let low_pair = empty |> insert Clubs 2 |> insert Spades 2
+let low_pair = 
+  empty 
+  |> insert Clubs 2 
+  |> insert Spades 2
 
-let high_pair = empty |> insert Clubs 10 |> insert Hearts 10
+let high_pair = 
+  empty 
+  |> insert Clubs 10 
+  |> insert Hearts 10
 
-let ace_pair = empty |> insert Spades 1 |> insert Diamonds 1
+let ace_pair = 
+  empty 
+  |> insert Spades 1 
+  |> insert Diamonds 1
 
 let low_trio = 
   empty 
@@ -84,8 +99,8 @@ let pair_ace =
 
 let pair_equal_low =
   pair_table
-  |> insert Hearts 9
-  |> insert Spades 2
+  |> insert Hearts 6
+  |> insert Spades 4
 
 let pair_equal_high =
   pair_table
