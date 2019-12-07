@@ -1,5 +1,19 @@
 open Deck
 
+(*================PARTIAL HANDS (for AI)==========*)
+let hc_high = empty |> insert Spades 13
+
+let hc_ace = empty |> insert Hearts 1
+
+let hc_low = empty |> insert Clubs 4
+
+let low_pair = empty |> insert Clubs 2 |> insert Spades 2
+
+let high_pair = empty |> insert Clubs 10 |> insert Hearts 10
+
+let ace_pair = empty |> insert Spades 1 |> insert Diamonds 1
+
+(*================FULL HANDS BELOW================*)
 (*================HIGH VALUE HANDS================*)
 
 let hv_table =

@@ -4,7 +4,19 @@ open Rank_hand
 open Hands
 
 let tests = [
+  (*=================PARTIAL HAND TESTS (for AI)==============*)
+  "A single high card beats a lower single high card" >:: (fun _ ->
+      assert_equal true (hand_value hc_high > hand_value hc_low));
+  "An ace beats a single high card" >:: (fun _ ->
+      assert_equal true (hand_value hc_ace > hand_value hc_high)); 
+  "A low pair beats a single ace card" >:: (fun _ ->
+      assert_equal true (hand_value low_pair > hand_value hc_ace));
+  "A high pair beats a low pair" >:: (fun _ ->
+      assert_equal true (hand_value high_pair > hand_value low_pair));
+  "An ace pair beats a high pair" >:: (fun _ ->
+      assert_equal true (hand_value ace_pair > hand_value high_pair));
 
+  (*=================FULL HAND TESTS================*)
   (*================HIGH VALUE TESTS================*)
 
   "a higher-card hand beats a lower one" >:: (fun _ -> 

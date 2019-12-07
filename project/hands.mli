@@ -1,5 +1,17 @@
 open Deck
 
+(*================PARTIAL HANDS (for AI)==========*)
+(*================HIGH CARD HANDS=================*)
+val hc_high : deck
+val hc_ace : deck
+val hc_low : deck
+
+(*==================PAIR HANDS===================*)
+val low_pair : deck
+val high_pair : deck
+val ace_pair : deck
+
+(*================FULL HANDS BELOW================*)
 (*================HIGH VALUE HANDS================*)
 (** [hv_table] is the table upon which we will test high value hands*)
 val hv_table : deck
