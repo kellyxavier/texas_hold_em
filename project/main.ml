@@ -127,12 +127,12 @@ let display_blind_money p =
   match blind p with
   | Small -> 
     print_endline ("\n" ^ name p ^ 
-      ", you are small blind, so you automatically bet $25.\nYou now have $" 
-      ^ string_of_int (money p) ^ " left.")
+                   ", you are small blind, so you automatically bet $25.\nYou now have $" 
+                   ^ string_of_int (money p) ^ " left.")
   | Big -> 
     print_endline ("\n" ^ name p ^ 
-      ", you are big blind, so you automatically bet $50.\nYou now have $" 
-      ^ string_of_int (money p) ^ " left.")
+                   ", you are big blind, so you automatically bet $50.\nYou now have $" 
+                   ^ string_of_int (money p) ^ " left.")
   | None -> print_string ""
 
 (** [show_blind_info players] prints out the blind information of each
@@ -296,15 +296,15 @@ let rec execute str p st =
     end
   | exception Empty -> 
     begin
-        print_endline "You cannot enter an empty command. Please try again!";
-  print_string "> ";
+      print_endline "You cannot enter an empty command. Please try again!";
+      print_string "> ";
       match read_line () with
       | str -> execute str p st
     end
   | exception Malformed -> 
     begin
-        print_endline "We did not recognize that. Please try again!";
-  print_string "> ";
+      print_endline "We did not recognize that. Please try again!";
+      print_string "> ";
       match read_line () with
       | str -> execute str p st
     end
@@ -539,7 +539,7 @@ let rec show_win_info st winners won_money aps =
   let f_players = folded_players st in
   let f_names = names_to_string (List.length f_players > 1) f_players "" in
   let net = net_winnings winners won_money in
-  print_endline (f_names ^ " folded in this round of poker.");
+  if List.length f_players <> 0 then print_endline (f_names ^ " folded in this round of poker.");
   print_endline ((names_to_string (List.length winners > 1) winners "") ^ " won $" ^ string_of_int net ^ " in this round of poker!"); 
   change_active_players st (split_pot st (st |> active_players) winners won_money [])
 
