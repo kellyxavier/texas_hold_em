@@ -206,48 +206,48 @@ let show_info p st =
 let show_flop st =
   if one_no_money (active_players st) then ()
   else
-  begin
-    ANSITerminal.erase Above;
-    print_endline "We will now reveal the flop.";
-    print_endline ("The table currently has the cards: \n" ^ 
-                   (st |> table |> to_string));
-    print_endline "Press enter when everyone is ready to continue";
-    print_string "> ";
-    match read_line () with
-    | _ -> ()
-  end
+    begin
+      ANSITerminal.erase Above;
+      print_endline "We will now reveal the flop.";
+      print_endline ("The table currently has the cards: \n" ^ 
+                     (st |> table |> to_string));
+      print_endline "Press enter when everyone is ready to continue";
+      print_string "> ";
+      match read_line () with
+      | _ -> ()
+    end
 
 (** [show_river st] reveals the table with the newly-added river to all 
     players. *)
 let show_river st =
   if one_no_money (active_players st) then ()
   else
-  begin
-    ANSITerminal.erase Above;
-    print_endline "We will now reveal the river.";
-    print_endline ("The table currently has the cards: \n" ^ 
-                   (st |> table |> to_string));
-    print_endline "Press enter when everyone is ready to continue";
-    print_string "> ";
-    match read_line () with
-    | _ -> ()
-  end
+    begin
+      ANSITerminal.erase Above;
+      print_endline "We will now reveal the river.";
+      print_endline ("The table currently has the cards: \n" ^ 
+                     (st |> table |> to_string));
+      print_endline "Press enter when everyone is ready to continue";
+      print_string "> ";
+      match read_line () with
+      | _ -> ()
+    end
 
 (** [show_turn st] reveals the table with the newly-added turn to all 
     players. *)
 let show_turn st =
   if one_no_money (active_players st) then ()
   else
-  begin
-    ANSITerminal.erase Above;
-    print_endline "We will now reveal the turn.";
-    print_endline ("The table currently has the cards: \n" ^ 
-                   (st |> table |> to_string));
-    print_endline "Press enter when everyone is ready to continue";
-    print_string "> ";
-    match read_line () with
-    | _ -> ()
-  end
+    begin
+      ANSITerminal.erase Above;
+      print_endline "We will now reveal the turn.";
+      print_endline ("The table currently has the cards: \n" ^ 
+                     (st |> table |> to_string));
+      print_endline "Press enter when everyone is ready to continue";
+      print_string "> ";
+      match read_line () with
+      | _ -> ()
+    end
 
 (** [quit_error] is a message when the player tries to quit at the 
     inappropriate time. *)
@@ -678,11 +678,12 @@ let add_ai st diff =
 (** [pick_diff st] asks the player for the level of AI difficulty desired,
     then returns a state with such an AI. *)
 let rec pick_diff st =
-  print_endline "What level difficulty AI do you want? Easy, medium, or hard?";
+  let only_p_name = names_to_string false (active_players st) "" in
+  print_endline (only_p_name ^ ", what level difficulty AI do you want? Easy, medium, or hard?");
   print_string "> ";
   match read_line () with
   | str -> 
-    match str with
+    match diff str with
     | exception Empty -> 
       pick_diff st
     | exception Malformed ->
