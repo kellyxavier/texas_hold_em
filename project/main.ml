@@ -6,6 +6,11 @@ open Hands
 open Rank_hand
 open Ai
 
+(** [is_ai_name n] is true if [n] is either "Easy AI", "Medium AI", or "Hard AI"
+    and false otherwise. *)
+let is_ai_name n =
+  n = "Easy AI" || n = "Medium AI" || n = "Hard AI"
+
 (** [get_valid_name lst i] is a name prompted by the [i]th user that is neither 
     empty nor already in [lst]. *)
 let rec get_valid_name lst i =
@@ -22,6 +27,11 @@ let rec get_valid_name lst i =
     if List.mem n lst then 
       begin
         print_endline "You cannot choose a name that someone has already selected. Please try again.";
+        get_valid_name lst i
+      end
+    else if is_ai_name n then
+      begin
+        print_endline "You cannot choose a name that is reserved for the AI. Please try again.";
         get_valid_name lst i
       end
     else n
@@ -119,13 +129,21 @@ let take_blind_money st =
     much money they have left. *)
 let display_blind_money p =
   match blind p with
-  | Small -> print_endline ("\n\n" ^ name p ^ 
+  | Small -> print_endline ("\n" ^ name p ^ 
                             ", you are small blind, so you automatically bet $25.\nYou now only have $" 
                             ^ string_of_int (money p) ^ " left.")
-  | Big -> print_endline ("\n\n" ^ name p ^ 
+  | Big -> print_endline ("\n" ^ name p ^ 
                           ", you are big blind, so you automatically bet $50.\nYou now only have $" 
                           ^ string_of_int (money p) ^ " left.")
   | None -> print_string ""
+
+(** [print_prev_moves players] prints out the last moves of eacher player in
+    [players]. *)
+let rec print_prev_moves players =
+  match players with
+  | [] -> ()
+  | h :: t -> print_endline (name h ^ ": " ^ move_to_string (last_move h));
+    print_prev_moves t
 
 (** [show_blind_info players] prints out the blind information of each
     player in [players]. *)
@@ -134,11 +152,15 @@ let rec show_blind_info players=
   | [] -> ()
   | h :: t -> display_blind_money h; show_blind_info t 
 
-let rec print_prev_moves players =
-  match players with
-  | [] -> ()
-  | h :: t -> print_endline (name h ^ ": " ^ move_to_string (last_move h));
-    print_prev_moves t
+(** [blinds st] is the state at which blinds are set in [st] and 
+    betting is about to commence. *)
+let blinds st =
+  let st' = st |> set_blinds |> take_blind_money in
+  show_blind_info (active_players st');
+  print_endline "\nPress enter when all are ready to begin.";
+  print_string "> ";
+  match read_line () with
+  | _ -> st'
 
 (** [show_info p st] prints the private information of player [p]*)
 let show_info p st = 
@@ -617,11 +639,12 @@ let rec next_game players =
 
 (** [start_game st] plays a game starting in [st]. *)
 and start_game st =
-  let st' = if List.length (active_players st) = 1 then pick_diff st 
+  let st' = 
+    if List.length (active_players st) = 1 
+    then pick_diff st 
     else st in
-  let st'' = st' |> set_blinds |> take_blind_money in
-  show_blind_info (active_players st''); 
-  let st_at_end = st'' 
+  let st_at_end = st'
+                  |> blinds
                   |> first_round_betting 
                   |> flop 
                   |> betting
