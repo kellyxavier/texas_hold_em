@@ -194,65 +194,21 @@ let show_turn st =
   print_endline ("The table currently has the cards: \n" ^ 
                  (st |> table |> to_string))
 
-(* Valeria thinks these message functions could maybe go someplace else -
-   command maybe? *)
-
-(** [quit_error] is the message for when a player tries to quit in the
-    middle of a game. *)
-let quit_error =
-  print_endline "You cannot quit in the middle of the game. Please try again!";
-  print_string "> "
-
-(** [continue_error] is the message for when a player tries to continue
-    instead of specifying a betting action. *)
-let continue_error =
-  print_endline "Please enter a betting action.";
-  print_string "> "
-
-(** [check_error] is the message for when a player tries to check when they
-    haven't betted enough. *)
-let check_error =
-  print_endline "You cannot check when the current bet is not 0. Please try again!";
-  print_string "> "
-
-(** [allin_correction] is the message that explicitly states which actions may
-    be taken when a player has gone all in. *)
-let allin_correction =
-  print_endline "Please either quit, call, or check";
-  print_string "> "
-
-(** [empty_command_message] is the message for when a player enters and empty
-    command. *)
-let empty_command_message =
-  print_endline "You cannot enter an empty command. Please try again!";
-  print_string "> "
-
-(** [malformed_command_message] is the message for when a player enters a
-    malformed command. *)
-let malformed_command_message = 
-  print_endline "We did not recognize that. Please try again!";
-  print_string "> "
-(*
-(** [try_allin_read_again p st] reads the user's input and passes it into 
-    [f]. *)
-let rec try_allin_read_again p st =
-  match read_line () with
-  | str -> execute_all_in str p st*)
-
 (** [execute_all_in str p st] interprets [p]'s input [str] in the context that a 
     player has gone all in and returns [st] that reflects as such. *)
 let rec execute_all_in str p st =
   match parse str with
   | Quit -> 
     begin 
-      quit_error;
-      (*try_allin_read_again p st*)
+        print_endline "You cannot quit in the middle of the game. Please try again!";
+  print_string "> ";
       match read_line () with
       | str -> execute_all_in str p st
     end
   | Continue -> 
     begin
-      continue_error;
+        print_endline "Please enter a betting action.";
+  print_string "> ";
       match read_line () with
       | str -> execute_all_in str p st
     end
@@ -262,7 +218,8 @@ let rec execute_all_in str p st =
       match check st p with 
       | exception InvalidBet -> 
         begin
-          check_error;
+            print_endline "You cannot check when the current bet is not 0. Please try again!";
+  print_string "> ";
           match read_line () with
           | str -> execute_all_in str p st
         end
@@ -271,25 +228,29 @@ let rec execute_all_in str p st =
   | Call -> (call st p, false)
   | Allin -> 
     begin
-      allin_correction;
+        print_endline "Please either quit, call, or check";
+  print_string "> ";
       match read_line () with
       | str -> execute_all_in str p st
     end
   | Raise i -> 
     begin
-      allin_correction;
+        print_endline "Please either quit, call, or check";
+  print_string "> ";
       match read_line () with
       | str -> execute_all_in str p st
     end
   | exception Empty -> 
     begin
-      empty_command_message;
+        print_endline "You cannot enter an empty command. Please try again!";
+  print_string "> ";
       match read_line () with
       | str -> execute_all_in str p st
     end
   | exception Malformed -> 
     begin
-      malformed_command_message;
+        print_endline "We did not recognize that. Please try again!";
+  print_string "> ";
       match read_line () with
       | str -> execute_all_in str p st
     end
@@ -301,13 +262,15 @@ let rec execute str p st =
   match parse str with
   | Quit -> 
     begin
-      quit_error;
+        print_endline "You cannot quit in the middle of the game. Please try again!";
+  print_string "> ";
       match read_line () with
       | str -> execute str p st
     end
   | Continue -> 
     begin
-      continue_error;
+        print_endline "Please enter a betting action.";
+  print_string "> ";
       match read_line () with
       | str -> execute str p st
     end
@@ -317,7 +280,8 @@ let rec execute str p st =
       match check st p with 
       | exception InvalidBet -> 
         begin
-          check_error;
+            print_endline "You cannot check when the current bet is not 0. Please try again!";
+  print_string "> ";
           match read_line () with
           | str -> execute str p st
         end
@@ -350,13 +314,15 @@ let rec execute str p st =
     end
   | exception Empty -> 
     begin
-      empty_command_message;
+        print_endline "You cannot enter an empty command. Please try again!";
+  print_string "> ";
       match read_line () with
       | str -> execute str p st
     end
   | exception Malformed -> 
     begin
-      malformed_command_message;
+        print_endline "We did not recognize that. Please try again!";
+  print_string "> ";
       match read_line () with
       | str -> execute str p st
     end
