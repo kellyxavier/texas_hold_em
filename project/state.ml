@@ -239,7 +239,33 @@ let rec last_moves lst acc =
   | [] -> List.rev acc
   | h :: t -> last_moves t ((name h, last_move h) :: acc)
 
+let rec string_wallets wallets acc =
+  match wallets with 
+  | [] -> acc
+  | (n, m) :: t -> string_wallets t (acc ^ n ^ "'s walllet: " ^ string_of_int (m) 
+                                     ^ " ")
+
+let rec string_last_moves last_moves acc =
+  match last_moves with
+  | [] -> acc
+  | (n, Default) :: t -> string_last_moves t (acc ^ n ^ "'s last move: Default")
+  | (n, Fold) :: t -> string_last_moves t (acc ^ n ^ "'s last move: Fold")
+  | (n, Check) :: t -> string_last_moves t (acc ^ n ^ "'s last move: Check")
+  | (n, Call) :: t -> string_last_moves t (acc ^ n ^ "'s last move: Call")
+  | (n, (Raise r)) :: t -> string_last_moves t (acc ^ n ^ "'s last move: Raise " ^ string_of_int r)
+  | (n, Allin) :: t -> string_last_moves t (acc ^ n ^ "'s last move: Alllin ")
+  | (n, Quit) :: t -> string_last_moves t (acc ^ n ^ "'s last move: Quit ")
+  | (n, Continue) :: t -> string_last_moves t (acc ^ n ^ "'s last move: Continue ")
+
 let get_info st p =
+  (* print_endline ("m_bet: " ^ string_of_int (max_bet st));
+     print_endline ("c_bet: " ^ string_of_int (current_bet st));
+     print_endline ("m_betted: " ^ string_of_int (money_betted p));
+     print_endline ("b_pool: " ^ string_of_int (betting_pool st));
+     let l_moves = last_moves (active_players st) [] in
+     print_endline ("old_moves: " ^ string_last_moves l_moves "");
+     print_endline ("h_cards: " ^ to_string (hand p));
+     print_endline("t_cards: " ^ to_string (table st)); *)
   {
     wallet = money p;
     o_wallets = other_wallets (active_players st) (name p) [];

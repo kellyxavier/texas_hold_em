@@ -49,6 +49,31 @@ let player_tests =
         assert_equal Small (p9 |> blind));
   ]
 
+let rec get_player i lst =
+  match lst with 
+  | [] -> failwith "empty list"
+  | h :: t -> if i = 1 then h else get_player (i-1) t
+
+let rec get_money p lst =
+  match lst with
+  | [] -> failwith "empty list"
+  | h :: t -> if name h = name p then money h else get_money p t
+
+let rec get_last_move p lst =
+  match lst with
+  | [] -> failwith "empty list"
+  | h :: t -> if name h = name p then last_move h else get_last_move p t
+
+let rec get_money_betted p lst =
+  match lst with
+  | [] -> failwith "empty list"
+  | h :: t -> if name h = name p then money_betted h else get_money_betted p t
+
+let rec player_names  acc lst=
+  match lst with 
+  | [] -> List.rev acc
+  | h :: t -> player_names (name h :: acc) t
+
 let player1 = create_player "valeria"
 let player2 = create_player "david"
 let player3 = create_player "bobby"
@@ -75,32 +100,6 @@ let players_left = [List.nth (st |> active_players) 1;
                     List.nth (st |> active_players) 2;
                     List.nth (st |> active_players) 3]
 let dk = empty |> insert Clubs 2 |> insert Diamonds 7 |> insert Diamonds 6
-
-let rec get_player i lst =
-  match lst with 
-  | [] -> failwith "empty list"
-  | h :: t -> if i = 1 then h else get_player (i-1) t
-
-let rec get_money p lst =
-  match lst with
-  | [] -> failwith "empty list"
-  | h :: t -> if name h = name p then money h else get_money p t
-
-let rec get_last_move p lst =
-  match lst with
-  | [] -> failwith "empty list"
-  | h :: t -> if name h = name p then last_move h else get_last_move p t
-
-let rec get_money_betted p lst =
-  match lst with
-  | [] -> failwith "empty list"
-  | h :: t -> if name h = name p then money_betted h else get_money_betted p t
-
-let rec player_names  acc lst=
-  match lst with 
-  | [] -> List.rev acc
-  | h :: t -> player_names (name h :: acc) t
-
 let p_i1 = create_player "A"
 let p_i2 = create_player "B"
 let p_i3 = create_player "C"
@@ -114,10 +113,12 @@ let test_state_cb_20 = let s' = change_current_bet test_state1 20
 let test_state_p2_quit = quit test_state1 p2
 let test_state_p2_fold = fold test_state1 p2
 let test_state_p1_check = check test_state1 p1
+let test_state_p2_fold_on_check = fold test_state_p1_check p2
 let test_state_p2_call = call test_state_cb_20 p2
 let test_state_p2_allin = all_in test_state1 p2
 let test_state_p1_raise_2000 = raise 2000 test_state1 p1
 let test_state_p2_call_2000 = call test_state_p1_raise_2000 p2
+let test_state_p3_allin = all_in test_state_p2_call_2000 p3
 let test_state_p2_raise_1000 = raise 1000 test_state1 p2
 
 let state_tests =
@@ -268,13 +269,20 @@ let state_tests =
     (fun _ -> assert_equal (Raise 1000)
         (test_state_p2_raise_1000 |> active_players |> get_last_move p2));
     "get_info evaluates to the appropriate info record for p1 when p1 checks 
-       and p2 and p3 have not made a move yet" >:: (fun _ -> 
+       when p2 and p3 have not made a move yet" >:: (fun _ -> 
         assert_equal (let i = get_info test_state1 p1 in 
                       {i with old_moves = [name p1, Check; name p2, Default; 
                                            name p3, Default]})
           (get_info test_state_p1_check p1));
+    "get_info evaluates to the appropriate info record for p2 when p2 folds 
+       when p1 has checked and p3 has not made a move yet" >:: (fun _ -> 
+        assert_equal (let i = get_info test_state_p1_check 
+                          (get_player 2 (active_players test_state_p1_check)) in
+                      {i with old_moves = [name p1, Check; name p3, Default]})
+          (get_info test_state_p2_fold_on_check 
+             (get_player 2 (all_players test_state_p2_fold_on_check))));
     "get_info evaluates to the appropriate info record for p1 when 
-       p1 raises 2000 and p2 and p3 have not made a move yet" >:: (fun _ -> 
+       p1 raises 2000 when p2 and p3 have not made a move yet" >:: (fun _ -> 
         assert_equal (let i = get_info test_state1 p1 in 
                       {i with wallet = 3000; c_bet = 2000; m_betted = 2000; 
                               b_pool = 2000; 
@@ -283,7 +291,30 @@ let state_tests =
                                            name p3, Default]})
           (get_info test_state_p1_raise_2000 
              (get_player 1 (active_players test_state_p1_raise_2000))));
-
+    "get_info evaluates to the appropriate info record for p2 when 
+       p2 calls when p1 has raised 2000 and p3 have not made a move yet" >:: 
+    (fun _ -> assert_equal (let i = get_info test_state_p1_raise_2000 
+                                (get_player 2 (active_players 
+                                                 test_state_p1_raise_2000)) in 
+                            {i with wallet = 3000; m_betted = 2000; 
+                                    b_pool = 4000; 
+                                    old_moves = [name p1, (Raise 2000); 
+                                                 name p2, Call; 
+                                                 name p3, Default]})
+        (get_info test_state_p2_call_2000 
+           (get_player 2 (active_players test_state_p2_call_2000))));
+    "get_info evaluates to the appropriate info record for p3 when 
+       p3 goes allin when p1 has raised 2000 and p2 called p1's bet" >:: 
+    (fun _ -> assert_equal (let i = get_info test_state_p2_call_2000 
+                                (get_player 3 (active_players 
+                                                 test_state_p2_call_2000)) in 
+                            {i with wallet = 0; c_bet = 5000; m_betted = 5000; 
+                                    b_pool = 9000; 
+                                    old_moves = [name p1, (Raise 2000); 
+                                                 name p2, Call; 
+                                                 name p3, Allin]})
+        (get_info test_state_p3_allin 
+           (get_player 3 (active_players test_state_p3_allin))));
   ]
 
 let tests =
