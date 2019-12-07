@@ -11,6 +11,20 @@ open Ai
 let only_one_player st =
   (active_players st) |> List.length < 2
 
+(** [all_no_money players] is true if no player in [players] has money and 
+    false otherwise. *)
+let rec all_no_money players  =
+  match players with
+  | [] -> true
+  | h :: t -> if money h = 0 then all_no_money t else false 
+
+(** [one_no_money players] is true if at least one player has no money and
+    false otherwise. *)
+let rec one_no_money players =
+  match players with 
+  | [] -> false
+  | h :: t -> if money h = 0 then true else one_no_money t
+
 (** [is_ai_name n] is true if [n] is either "Easy AI", "Medium AI", or "Hard AI"
     and false otherwise. *)
 let is_ai_name n =
@@ -183,38 +197,50 @@ let show_info p st =
 (** [show_flop st] reveals the table with the newly-added flop to all 
     players. *)
 let show_flop st =
-  ANSITerminal.erase Above;
-  print_endline "We will now reveal the flop.";
-  print_endline ("The table currently has the cards: \n" ^ 
-                 (st |> table |> to_string));
-  print_endline "Press enter when everyone is ready to continue";
-  print_string "> ";
-  match read_line () with
-  | _ -> ()
+  if one_no_money (active_players st) then ()
+  else
+  begin
+    ANSITerminal.erase Above;
+    print_endline "We will now reveal the flop.";
+    print_endline ("The table currently has the cards: \n" ^ 
+                   (st |> table |> to_string));
+    print_endline "Press enter when everyone is ready to continue";
+    print_string "> ";
+    match read_line () with
+    | _ -> ()
+  end
 
 (** [show_river st] reveals the table with the newly-added river to all 
     players. *)
 let show_river st =
-  ANSITerminal.erase Above;
-  print_endline "We will now reveal the river.";
-  print_endline ("The table currently has the cards: \n" ^ 
-                 (st |> table |> to_string));
-  print_endline "Press enter when everyone is ready to continue";
-  print_string "> ";
-  match read_line () with
-  | _ -> ()
+  if one_no_money (active_players st) then ()
+  else
+  begin
+    ANSITerminal.erase Above;
+    print_endline "We will now reveal the river.";
+    print_endline ("The table currently has the cards: \n" ^ 
+                   (st |> table |> to_string));
+    print_endline "Press enter when everyone is ready to continue";
+    print_string "> ";
+    match read_line () with
+    | _ -> ()
+  end
 
 (** [show_turn st] reveals the table with the newly-added turn to all 
     players. *)
 let show_turn st =
-  ANSITerminal.erase Above;
-  print_endline "We will now reveal the turn.";
-  print_endline ("The table currently has the cards: \n" ^ 
-                 (st |> table |> to_string));
-  print_endline "Press enter when everyone is ready to continue";
-  print_string "> ";
-  match read_line () with
-  | _ -> ()
+  if one_no_money (active_players st) then ()
+  else
+  begin
+    ANSITerminal.erase Above;
+    print_endline "We will now reveal the turn.";
+    print_endline ("The table currently has the cards: \n" ^ 
+                   (st |> table |> to_string));
+    print_endline "Press enter when everyone is ready to continue";
+    print_string "> ";
+    match read_line () with
+    | _ -> ()
+  end
 
 (** [quit_error] is a message when the player tries to quit at the 
     inappropriate time. *)
@@ -309,20 +335,6 @@ let rec execute str p st =
       | str -> execute str p st
     end
   | Default -> failwith "player entered command should never parse to Default"
-
-(** [all_no_money players] is true if no player in [players] has money and 
-    false otherwise. *)
-let rec all_no_money players  =
-  match players with
-  | [] -> true
-  | h :: t -> if money h = 0 then all_no_money t else false 
-
-(** [one_no_money players] is true if at least one player has no money and
-    false otherwise. *)
-let rec one_no_money players =
-  match players with 
-  | [] -> false
-  | h :: t -> if money h = 0 then true else one_no_money t
 
 (** [everyone_gets_a_turn players st] performs a betting round that will
     terminate if no one decides to raise a bet, and will go to
