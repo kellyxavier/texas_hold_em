@@ -394,9 +394,9 @@ let rec everyone_gets_a_turn players st =
             let act = 
               if name h = "easy" then 
                 execute (make_easy_move st (get_info st h)) h st 
-              else if name h = "med" then
-                execute (make_med_move st (get_info st h)) h st 
-              else execute (make_hard_move st (get_info st h)) h st in 
+              else if name h = "hard" then
+                execute (make_hard_move st (get_info st h)) h st
+              else execute (make_med_move st (get_info st h)) h st  in 
             match act with
             | (st', raised) -> 
               if raised then continued_betting (st' |> active_players |> place_last h) st' 
@@ -446,9 +446,9 @@ and continued_betting players st =
                 let act = 
                   if name h = "easy" then 
                     execute (make_easy_move st (get_info st h)) h st 
-                  else if name h = "med" then
-                    execute (make_med_move st (get_info st h)) h st 
-                  else execute (make_hard_move st (get_info st h)) h st in 
+                  else if name h = "hard" then
+                    execute (make_hard_move st (get_info st h)) h st
+                  else execute (make_med_move st (get_info st h)) h st  in 
                 match act with
                 | (st', raised) -> 
                   if raised then continued_betting (st' |> active_players |> place_last h) st' 
@@ -673,8 +673,8 @@ let end_game st =
 (** [add_ai st diff] is an updated [st] with an AI player in the last position 
     of both player lists and difficulty set to [diff].
 
-    [diff] must match either "easy" or "med" (or "hard") if it does not match
-    one of those entries, the AI will default to "hard" *)
+    [diff] must match either "easy" or "hard" (or "med") if it does not match
+    one of those entries, the AI will default to "med" *)
 let add_ai st diff =
   let st' = change_active_players st 
       (active_players st @ [create_ai_player diff]) in

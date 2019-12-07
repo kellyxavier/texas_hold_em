@@ -96,7 +96,8 @@ let rec check_trio fh ranks =
           let highcrds = begin
             match (List.filter (fun x -> x <> dec a) ranks'') with
             | x :: y :: t -> 14 * x + y
-            | _ -> failwith "Could not find kicker cards for trio" end in
+            | x :: t -> 14 * x
+            | _ -> 0 end in
           ((dec a) * 195) + highcrds + 324330 (* Trio [324569-327044] ; 
                                                  Actual (239-2714) *)
       end
@@ -118,7 +119,9 @@ let check_pair fh ranks =
             match List.filter (fun x -> x <> a) ranks |> List.map dec
                   |> List.sort compare |> List.rev with 
             | x :: y :: z :: t -> 195 * (dec x) + 14 * (dec y) + (dec z)
-            | _ -> failwith "Could not find kicker cards for pair"  end in
+            | x :: y :: t -> 195 * (dec x) + 14 * (dec y)
+            | x :: t -> 195 * (dec x)
+            | _ -> 0 end in
           ((dec a) * 2715) + highcrds + 284461 (* Pair [288000-322259]
                                                   Actual (3539-37798)*)
       end
@@ -180,7 +183,15 @@ let get_highcard ranks =
   | a :: b :: c :: d :: e :: t ->
     (* HighCard [1-287999 (238274-526273)] *)
     ((a * 37800) + (b * 2715) + (c * 195) + (d * 14) + e) - 238274
-  | _ -> failwith "Invalid hand"
+  | a :: b :: c :: d :: t ->
+    ((a * 37800) + (b * 2715) + (c * 195) + (d * 14)) - 238274
+  | a :: b :: c :: t ->
+    ((a * 37800) + (b * 2715) + (c * 195)) - 238274
+  | a :: b :: t ->
+    ((a * 37800) + (b * 2715)) - 238274
+  | a :: t -> 
+    ((a * 37800) - 238274)
+  | _ -> -999999
 
 
 let hand_value hand =

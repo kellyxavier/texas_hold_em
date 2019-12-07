@@ -22,11 +22,11 @@ type b =
 type player
 
 (** [create_player n] is a player with name n, no hand, starting money of 5000,
-   and status Active. This is not an AI player*)
+    and status Active. This is not an AI player*)
 val create_player : string -> player
 
 (** [create_ai_player] is an AI player. They start with all the same fields as
-   a human player, with a name of "The AI."*)
+    a human player, and a name that determines their difficulty. *)
 val create_ai_player : string -> player
 
 (** [name p] is the name of player [p]. *)
@@ -61,7 +61,7 @@ val change_blind : player -> b -> player
 val money_betted : player -> int
 
 (** [change_money_betted p mb] is the player [p] with [mb] added to the money 
-   player [p] currently has betted. *)
+    player [p] currently has betted. *)
 val change_money_betted : player -> int -> player
 
 (** [reset_money_betted p] sets [p]'s money back to 0. *)
