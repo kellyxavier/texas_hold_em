@@ -61,14 +61,14 @@ let rec get_valid_name lst i =
       begin
         print_endline 
           ("You cannot choose a name that someone has already selected. " ^
-          "Please try again.");
+           "Please try again.");
         get_valid_name lst i
       end
     else if is_ai_name n then
       begin
         print_endline 
           ("You cannot choose a name that is reserved for the AI. " ^ 
-          "Please try again.");
+           "Please try again.");
         get_valid_name lst i
       end
     else n
@@ -159,12 +159,12 @@ let display_blind_money p =
   match blind p with
   | Small -> 
     print_endline ("\n" ^ name p ^ 
-      ", you are small blind, so you automatically bet $25.\nYou now have $" 
-      ^ string_of_int (money p) ^ " left.")
+                   ", you are small blind, so you automatically bet $25.\nYou now have $" 
+                   ^ string_of_int (money p) ^ " left.")
   | Big -> 
     print_endline ("\n" ^ name p ^ 
-      ", you are big blind, so you automatically bet $50.\nYou now have $" 
-      ^ string_of_int (money p) ^ " left.")
+                   ", you are big blind, so you automatically bet $50.\nYou now have $" 
+                   ^ string_of_int (money p) ^ " left.")
   | None -> print_string ""
 
 (** [show_blind_info players] prints out the blind information of each
@@ -215,39 +215,39 @@ let show_info p st =
 let show_flop st =
   if one_no_money (active_players st) then ()
   else
-  begin
-    ANSITerminal.erase Above;
-    print_endline "We will now reveal the flop.";
-    print_endline ("The table currently has the cards: \n" ^ 
-                   (st |> table |> to_string));
-    wait ()
-  end
+    begin
+      ANSITerminal.erase Above;
+      print_endline "We will now reveal the flop.";
+      print_endline ("The table currently has the cards: \n" ^ 
+                     (st |> table |> to_string));
+      wait ()
+    end
 
 (** [show_river st] reveals the table with the newly-added river to all 
     players. *)
 let show_river st =
   if one_no_money (active_players st) then ()
   else
-  begin
-    ANSITerminal.erase Above;
-    print_endline "We will now reveal the river.";
-    print_endline ("The table currently has the cards: \n" ^ 
-                   (st |> table |> to_string));
-    wait ()
-  end
+    begin
+      ANSITerminal.erase Above;
+      print_endline "We will now reveal the river.";
+      print_endline ("The table currently has the cards: \n" ^ 
+                     (st |> table |> to_string));
+      wait ()
+    end
 
 (** [show_turn st] reveals the table with the newly-added turn to all 
     players. *)
 let show_turn st =
   if one_no_money (active_players st) then ()
   else
-  begin
-    ANSITerminal.erase Above;
-    print_endline "We will now reveal the turn.";
-    print_endline ("The table currently has the cards: \n" ^ 
-                   (st |> table |> to_string));
-    wait ()
-  end
+    begin
+      ANSITerminal.erase Above;
+      print_endline "We will now reveal the turn.";
+      print_endline ("The table currently has the cards: \n" ^ 
+                     (st |> table |> to_string));
+      wait ()
+    end
 
 (** [execute_again p st] prompts [p] to take a betting decision and then
     executes the command again in [st]. *)
@@ -614,9 +614,10 @@ let end_game st =
     [diff] must match either "Easy AI" or "Hard AI" (or "Medium AI") if it does not match
     one of those entries, the AI will default to "Medium AI" *)
 let add_ai st diff =
-  let st' = change_active_players st 
+  (* let st' = change_active_players st 
       (active_players st @ [create_ai_player diff]) in
-  change_all_players st' (all_players st' @ [create_ai_player diff])
+     change_all_players st' (all_players st' @ [create_ai_player diff]) *)
+  create_ai_player diff :: [] |> List.append (all_players st) |> new_round
 
 (** [pick_diff st] asks the player for the level of AI difficulty desired,
     then returns a state with such an AI. *)
