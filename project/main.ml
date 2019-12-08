@@ -61,14 +61,14 @@ let rec get_valid_name lst i =
       begin
         print_endline 
           ("You cannot choose a name that someone has already selected. " ^
-          "Please try again.");
+           "Please try again.");
         get_valid_name lst i
       end
     else if is_ai_name n then
       begin
         print_endline 
           ("You cannot choose a name that is reserved for the AI. " ^ 
-          "Please try again.");
+           "Please try again.");
         get_valid_name lst i
       end
     else n
@@ -159,12 +159,12 @@ let display_blind_money p =
   match blind p with
   | Small -> 
     print_endline ("\n" ^ name p ^ 
-      ", you are small blind, so you automatically bet $25.\nYou now have $" 
-      ^ string_of_int (money p) ^ " left.")
+                   ", you are small blind, so you automatically bet $25.\nYou now have $" 
+                   ^ string_of_int (money p) ^ " left.")
   | Big -> 
     print_endline ("\n" ^ name p ^ 
-      ", you are big blind, so you automatically bet $50.\nYou now have $" 
-      ^ string_of_int (money p) ^ " left.")
+                   ", you are big blind, so you automatically bet $50.\nYou now have $" 
+                   ^ string_of_int (money p) ^ " left.")
   | None -> print_string ""
 
 (** [show_blind_info players] prints out the blind information of each
@@ -215,39 +215,39 @@ let show_info p st =
 let show_flop st =
   if one_no_money (active_players st) then ()
   else
-  begin
-    ANSITerminal.erase Above;
-    print_endline "We will now reveal the flop.";
-    print_endline ("The table currently has the cards: \n" ^ 
-                   (st |> table |> to_string));
-    wait ()
-  end
+    begin
+      ANSITerminal.erase Above;
+      print_endline "We will now reveal the flop.";
+      print_endline ("The table currently has the cards: \n" ^ 
+                     (st |> table |> to_string));
+      wait ()
+    end
 
 (** [show_river st] reveals the table with the newly-added river to all 
     players. *)
 let show_river st =
   if one_no_money (active_players st) then ()
   else
-  begin
-    ANSITerminal.erase Above;
-    print_endline "We will now reveal the river.";
-    print_endline ("The table currently has the cards: \n" ^ 
-                   (st |> table |> to_string));
-    wait ()
-  end
+    begin
+      ANSITerminal.erase Above;
+      print_endline "We will now reveal the river.";
+      print_endline ("The table currently has the cards: \n" ^ 
+                     (st |> table |> to_string));
+      wait ()
+    end
 
 (** [show_turn st] reveals the table with the newly-added turn to all 
     players. *)
 let show_turn st =
   if one_no_money (active_players st) then ()
   else
-  begin
-    ANSITerminal.erase Above;
-    print_endline "We will now reveal the turn.";
-    print_endline ("The table currently has the cards: \n" ^ 
-                   (st |> table |> to_string));
-    wait ()
-  end
+    begin
+      ANSITerminal.erase Above;
+      print_endline "We will now reveal the turn.";
+      print_endline ("The table currently has the cards: \n" ^ 
+                     (st |> table |> to_string));
+      wait ()
+    end
 
 (** [execute_again p st] prompts [p] to take a betting decision and then
     executes the command again in [st]. *)
@@ -301,43 +301,8 @@ let rec everyone_gets_a_turn players st =
         if money h = 0 then everyone_gets_a_turn t st 
         else if one_no_money players then st
         else if is_ai h 
-        then 
-          begin
-            let act = 
-              if name h = "Easy AI" then 
-                execute (make_easy_move st (get_info st h)) h st 
-              else if name h = "Hard AI" then
-                execute (make_hard_move st (get_info st h)) h st
-              else execute (make_med_move st (get_info st h)) h st in 
-            match act with
-            | (st', raised) -> 
-              if raised then continued_betting (st' |> active_players |> place_last h) st' 
-              else betting_aux true t st'
-          end
-        else 
-          begin
-            print_endline ("\n\n"^(name h)^", press enter when you are alone");
-            print_string "> ";
-            match read_line () with 
-            | _ -> 
-              show_info h st; 
-              (* let need_to_stay_in =  current_bet st - money_betted h in *)
-              (* print_endline ("You must bet at least $" ^ string_of_int (current_bet st - money_betted h) ^ " to stay in the game."); *)
-              if current_bet st - money_betted h = 0 
-              then
-                print_endline ("Your options are 'fold', 'check', 'call', 'allin', 'raise x',\nwhere x is a positive integer.")
-              else
-                print_endline ("Your options are 'fold', 'call', 'allin', 'raise x', \nwhere x is a positive integer.\n");
-              print_endline "What would you like to do?";         
-              print_string "> ";
-              match read_line () with
-              | str -> 
-                let act = execute str h st in 
-                match act with
-                | (st', raised) -> 
-                  if raised then continued_betting (st' |> active_players |> place_last h) st' 
-                  else betting_aux true t st'
-          end
+        then ai_turn st h t true
+        else human_turn st h t true
     end
 
 (** [continued_betting players st] performs as many rounds of betting as
@@ -354,48 +319,54 @@ and continued_betting players st =
         if money h = 0 then continued_betting t st else 
           begin
             if is_ai h 
-            then 
-              begin
-                let act = 
-                  if name h = "Easy AI" then 
-                    execute (make_easy_move st (get_info st h)) h st 
-                  else if name h = "Hard AI" then
-                    execute (make_hard_move st (get_info st h)) h st
-                  else execute (make_med_move st (get_info st h)) h st  in 
-                match act with
-                | (st', raised) -> 
-                  if raised then continued_betting (st' |> active_players |> place_last h) st' 
-                  else betting_aux false t st'
-              end
-            else 
-              begin
-                print_endline ("\n\n"^(name h)^", press enter when you are alone");
-                print_string "> ";
-                match read_line () with 
-                | _ -> 
-                  show_info h st;
-                  (* let need_to_stay_in =  current_bet st - money_betted h in *)
-                  (* print_endline ("You must bet at least $" ^ string_of_int (current_bet st - money_betted h) ^ " to stay in the game."); *)
-                  if current_bet st - money_betted h = 0 
-                  then
-                    print_endline ("Your options are 'fold', 'check', 'call', 'allin', 'raise x', \n where x is a positive integer.")
-                  else
-                    print_endline ("Your options are 'fold', 'call', 'allin', 'raise x', \n where x is a positive integer.");
-                  print_endline "What would you like to do?";
-                  print_string "> ";
-                  begin 
-                    match read_line () with
-                    | str -> 
-                      let act = execute str h st in 
-                      match act with
-                      | (st', raised) -> 
-                        if raised then continued_betting (st' |> active_players |> place_last h) st' 
-                        else betting_aux false t st'
-                  end
-              end
+            then ai_turn st h t false
+            else human_turn st h t false
           end
-
     end
+
+(** [ai_turn st ai rest_of_ps] performs the turn for [ai] and then continues 
+    with the betting round for [rest_of_ps]. *)
+and ai_turn st ai rest_of_ps b = 
+  let act = 
+    if name ai = "Easy AI" then 
+      execute (make_easy_move st (get_info st ai)) ai st 
+    else if name ai = "Hard AI" then
+      execute (make_hard_move st (get_info st ai)) ai st
+    else execute (make_med_move st (get_info st ai)) ai st in 
+  match act with
+  | (st', raised) -> 
+    if raised then continued_betting (st' |> active_players |> place_last ai) st' 
+    else betting_aux b rest_of_ps st'
+
+
+(** [human_turn st human rest_of_ps] performs the turn for [human] and then 
+    continues with the betting round for [rest_of_ps]. *)
+and human_turn st human rest_of_ps b =
+  print_endline ("\n\n"^(name human)^", press enter when you are alone");
+  print_string "> ";
+  match read_line () with 
+  | _ -> 
+    show_info human st; 
+    (* let need_to_stay_in =  current_bet st - money_betted h in *)
+    (* print_endline ("You must bet at least $" ^ string_of_int (current_bet st - money_betted h) ^ " to stay in the game."); *)
+    if current_bet st - money_betted human = 0 
+    then
+      print_endline ("Your options are 'fold', 'check', 'call', 'allin', 'raise x',\nwhere x is a positive integer.")
+    else
+      print_endline ("Your options are 'fold', 'call', 'allin', 'raise x', \nwhere x is a positive integer.\n");
+    print_endline "What would you like to do?";         
+    print_string "> ";
+    match read_line () with
+    | str -> 
+      let act = execute str human st in 
+      begin
+        match act with
+        | (st', raised) -> 
+          if raised then continued_betting (st' |> active_players |> 
+                                            place_last human) st' 
+          else betting_aux b rest_of_ps st'
+      end
+
 
 (** [betting_aux players] prints the private information of each players to 
     the terminal, clearing the terminal between each player*)
