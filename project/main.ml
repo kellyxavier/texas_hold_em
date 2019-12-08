@@ -158,13 +158,17 @@ let take_blind_money st =
 let display_blind_money p =
   match blind p with
   | Small -> 
-    print_endline ("\n" ^ name p ^ 
-                   ", you are small blind, so you automatically bet $25.\nYou now have $" 
-                   ^ string_of_int (money p) ^ " left.")
+    begin
+      print_endline ("\n" ^ name p ^ 
+                     ", you are small blind, so you automatically bet $25.");
+      print_endline ("You now have $" ^ string_of_int (money p) ^ " left.")
+    end
   | Big -> 
-    print_endline ("\n" ^ name p ^ 
-                   ", you are big blind, so you automatically bet $50.\nYou now have $" 
-                   ^ string_of_int (money p) ^ " left.")
+    begin
+      print_endline ("\n" ^ name p ^ 
+                     ", you are big blind, so you automatically bet $50.");
+      print_endline ("You now have $" ^ string_of_int (money p) ^ " left.")
+    end
   | None -> print_string ""
 
 (** [show_blind_info players] prints out the blind information of each
@@ -335,9 +339,9 @@ and ai_turn st ai rest_of_ps b =
     else execute (make_med_move st (get_info st ai)) ai st in 
   match act with
   | (st', raised) -> 
-    if raised then continued_betting (st' |> active_players |> place_last ai) st' 
+    if raised 
+    then continued_betting (st' |> active_players |> place_last ai) st' 
     else betting_aux b rest_of_ps st'
-
 
 (** [human_turn st human rest_of_ps] performs the turn for [human] and then 
     continues with the betting round for [rest_of_ps]. *)
