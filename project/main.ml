@@ -6,6 +6,13 @@ open Hands
 open Rank_hand
 open Ai
 
+(** [wait ()] pauses the game and returns when a player hits enter. *)
+let wait () = 
+  print_endline "\nPress enter when everyone is ready to continue.";
+  print_string "> ";
+  match read_line () with
+  | _ -> ()
+
 (** [more_than_one_player st] is true if there's more than one active player
     in the game and false otherwise. *)
 let only_one_player st =
@@ -52,12 +59,16 @@ let rec get_valid_name lst i =
   | n -> 
     if List.mem n lst then 
       begin
-        print_endline "You cannot choose a name that someone has already selected. Please try again.";
+        print_endline 
+          ("You cannot choose a name that someone has already selected. " ^
+          "Please try again.");
         get_valid_name lst i
       end
     else if is_ai_name n then
       begin
-        print_endline "You cannot choose a name that is reserved for the AI. Please try again.";
+        print_endline 
+          ("You cannot choose a name that is reserved for the AI. " ^ 
+          "Please try again.");
         get_valid_name lst i
       end
     else n
@@ -148,12 +159,12 @@ let display_blind_money p =
   match blind p with
   | Small -> 
     print_endline ("\n" ^ name p ^ 
-                   ", you are small blind, so you automatically bet $25.\nYou now have $" 
-                   ^ string_of_int (money p) ^ " left.")
+      ", you are small blind, so you automatically bet $25.\nYou now have $" 
+      ^ string_of_int (money p) ^ " left.")
   | Big -> 
     print_endline ("\n" ^ name p ^ 
-                   ", you are big blind, so you automatically bet $50.\nYou now have $" 
-                   ^ string_of_int (money p) ^ " left.")
+      ", you are big blind, so you automatically bet $50.\nYou now have $" 
+      ^ string_of_int (money p) ^ " left.")
   | None -> print_string ""
 
 (** [show_blind_info players] prints out the blind information of each
@@ -168,10 +179,8 @@ let rec show_blind_info players=
 let blinds st =
   let st' = st |> set_blinds |> take_blind_money in
   show_blind_info (active_players st');
-  print_endline "\nPress enter when everyone is ready to begin.";
-  print_string "> ";
-  match read_line () with
-  | _ -> st'
+  wait ();
+  st'
 
 (** [print_prev_moves players] prints out the last moves of eacher player in
     [players]. *)
@@ -211,10 +220,7 @@ let show_flop st =
     print_endline "We will now reveal the flop.";
     print_endline ("The table currently has the cards: \n" ^ 
                    (st |> table |> to_string));
-    print_endline "Press enter when everyone is ready to continue";
-    print_string "> ";
-    match read_line () with
-    | _ -> ()
+    wait ()
   end
 
 (** [show_river st] reveals the table with the newly-added river to all 
@@ -227,10 +233,7 @@ let show_river st =
     print_endline "We will now reveal the river.";
     print_endline ("The table currently has the cards: \n" ^ 
                    (st |> table |> to_string));
-    print_endline "Press enter when everyone is ready to continue";
-    print_string "> ";
-    match read_line () with
-    | _ -> ()
+    wait ()
   end
 
 (** [show_turn st] reveals the table with the newly-added turn to all 
@@ -243,104 +246,45 @@ let show_turn st =
     print_endline "We will now reveal the turn.";
     print_endline ("The table currently has the cards: \n" ^ 
                    (st |> table |> to_string));
-    print_endline "Press enter when everyone is ready to continue";
-    print_string "> ";
-    match read_line () with
-    | _ -> ()
+    wait ()
   end
 
-(** [quit_error] is a message when the player tries to quit at the 
-    inappropriate time. *)
-let quit_error =
-  "You cannot quit in the middle of the game. Please try again!\n> "
-
-(** [continue_error] is a message when the player tries to continue at the 
-    inappropriate time. *)
-let continue_error =
-  "Please enter a betting action."
-
-(** [check_error] is a message when the player tries to check at the 
-    inappropriate time. *)
-let check_error =
-  "You cannot check when the current bet is not 0. Please try again!"
-
-(** [allin_error] is a message when the player tries to go all in when they 
-    canot raise so much money. *)
-let allin_error =
-  "You may only bet an amount between $0 and the wallet of the poorest player. "
-  ^ "Please try again!"
+(** [execute_again p st] prompts [p] to take a betting decision and then
+    executes the command again in [st]. *)
+let rec execute_again p st = 
+  print_string "> ";
+  match read_line () with
+  | str -> execute str p st
 
 (** [execute str p st] inteprets [p]'s [str] in the context of a regular betting
     round and returns a pair of an updated [st] which reflects the changes made
     and whether it was a raise or not. *)
-let rec execute str p st =
+and execute str p st =
   match parse str with
-  | Quit -> 
-    begin
-      print_endline quit_error;
-      print_string "> ";
-      match read_line () with
-      | str -> execute str p st
-    end
-  | Continue -> 
-    begin
-      print_endline continue_error;
-      print_string "> ";
-      match read_line () with
-      | str -> execute str p st
-    end
+  | Quit -> print_endline quit_error; execute_again p st
+  | Continue -> print_endline continue_error; execute_again p st
   | Fold -> (fold st p, false)
   | Check -> 
     begin
       match check st p with 
       | st' -> (st', false)
-      | exception InvalidBet -> 
-        begin
-          print_endline check_error;
-          print_string "> ";
-          match read_line () with
-          | str -> execute str p st
-        end
+      | exception InvalidBet -> print_endline check_error; execute_again p st
     end
   | Call -> (call st p, false)
   | Allin -> 
     begin
       match all_in st p with 
-      | st' -> (st', false)
-      | exception InvalidBet -> 
-        begin
-          print_endline allin_error;
-          print_string "> ";
-          match read_line () with
-          | str -> execute str p st
-        end
+      | st' -> (st', true)
+      | exception InvalidBet -> print_endline raise_error; execute_again p st
     end
   | Raise i -> 
     begin
       match raise i st p with 
-      | exception InvalidBet -> 
-        begin
-          print_endline "You may only bet an amount between $0 and the wallet of the poorest player. Please try again!";
-          print_string "> ";
-          match read_line () with
-          | str -> execute str p st
-        end
       | st' -> (st', true)
+      | exception InvalidBet -> print_endline raise_error; execute_again p st
     end
-  | exception Empty -> 
-    begin
-      print_endline "You cannot enter an empty command. Please try again!";
-      print_string "> ";
-      match read_line () with
-      | str -> execute str p st
-    end
-  | exception Malformed -> 
-    begin
-      print_endline "We did not recognize that. Please try again!";
-      print_string "> ";
-      match read_line () with
-      | str -> execute str p st
-    end
+  | exception Empty -> print_endline empty_error; execute_again p st
+  | exception Malformed -> print_endline malformed_error; execute_again p st
   | Default -> failwith "player entered command should never parse to Default"
 
 (** [everyone_gets_a_turn players st] performs a betting round that will
@@ -400,7 +344,6 @@ let rec everyone_gets_a_turn players st =
     necessary until all players have called or folded on the current bet. *)
 and continued_betting players st = 
   if all_no_money players || only_one_player st then st
-  else if one_no_money players then st
   else
     begin
       match players with
@@ -682,7 +625,7 @@ let rec pick_diff st =
   print_string "> ";
   match read_line () with
   | str -> 
-    match str with
+    match diff str with
     | exception Empty -> 
       pick_diff st
     | exception Malformed ->

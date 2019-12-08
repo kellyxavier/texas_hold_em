@@ -60,6 +60,29 @@ val parse : string -> command
     Raises: [Malformed] if the command is malformed. *)
 val diff : string -> difficulty
 
+(** [quit_error] is a message when the player tries to quit at the 
+    inappropriate time. *)
+val quit_error : string
+
+(** [continue_error] is a message when the player tries to continue at the 
+    inappropriate time. *)
+val continue_error : string
+
+(** [check_error] is a message when the player tries to check at the 
+    inappropriate time. *)
+val check_error : string
+
+(** [raise_error] is a message when the player tries to raise when they 
+    cannot raise so much money. *)
+val raise_error : string
+
+(** [empty_error] is a message when the player puts in an empty command. *)
+val empty_error : string
+
+(** [malformed_error] is a message when the player puts in a malformed
+    command. *)
+val malformed_error : string
+
 (** [move_to_string m] returns m as a string in the past tense. Default is 
     "Has not made a move yet" *)
 val move_to_string : command -> string

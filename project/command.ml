@@ -48,6 +48,25 @@ let diff str =
   else if phrase = "hard" then Hard
   else raise Malformed
 
+let quit_error =
+  "You cannot quit in the middle of the game. Please try again!"
+
+let continue_error =
+  "Please enter a betting action."
+
+let check_error =
+  "You cannot check when the current bet is not 0. Please try again!"
+
+let raise_error =
+  "You may only bet an amount between $0 and the wallet of the poorest player. "
+  ^ "Please try again!"
+
+let empty_error =
+  "You cannot enter an empty command. Please try again!"
+
+let malformed_error =
+  "We did not recognize that. Please try again!"
+
 let move_to_string m =
   match m with
   | Default -> "Has not made a move yet"
