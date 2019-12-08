@@ -614,9 +614,6 @@ let end_game st =
     [diff] must match either "Easy AI" or "Hard AI" (or "Medium AI") if it does not match
     one of those entries, the AI will default to "Medium AI" *)
 let add_ai st diff =
-  (* let st' = change_active_players st 
-      (active_players st @ [create_ai_player diff]) in
-     change_all_players st' (all_players st' @ [create_ai_player diff]) *)
   create_ai_player diff :: [] |> List.append (all_players st) |> new_round
 
 (** [pick_diff st] asks the player for the level of AI difficulty desired,
