@@ -621,7 +621,8 @@ let add_ai st diff =
 (** [pick_diff st] asks the player for the level of AI difficulty desired,
     then returns a state with such an AI. *)
 let rec pick_diff st =
-  print_endline "What level difficulty AI do you want? Easy, medium, or hard?";
+  let only_p_name = names_to_string false (active_players st) "" in
+  print_endline (only_p_name ^ ", what level difficulty AI do you want? Easy, medium, or hard?");
   print_string "> ";
   match read_line () with
   | str -> 
