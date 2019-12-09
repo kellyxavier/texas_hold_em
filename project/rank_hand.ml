@@ -193,11 +193,10 @@ let get_highcard ranks =
     ((a * 37800) - 238274)
   | _ -> -999999
 
-
-let hand_value hand =
-  let sort = sort_hand [] [] [] [] [] (to_list hand) in
-
-  (* Checking for flushes *)
+(** [check_flushes sort] is the resulting point value of the flush contained in
+    the sorted hand [sort]. This is equal to 0 if the hand does not contain a
+    flush. *)
+let check_flushes sort = 
   let clubs_flush = check_flush sort.clubs in
   if clubs_flush > 0 then clubs_flush else
     let diamonds_flush = check_flush sort.diamonds in
@@ -205,34 +204,38 @@ let hand_value hand =
       let hearts_flush = check_flush sort.hearts in
       if hearts_flush > 0 then hearts_flush else
         let spades_flush = check_flush sort.spades in
-        if spades_flush > 0 then spades_flush else
+        if spades_flush > 0 then spades_flush else 0
 
-          (* Checking for FoaK *)
-          let foak = check_foak sort.ranks in
-          if foak > 0 then foak else
+let hand_value hand =
+  let sort = sort_hand [] [] [] [] [] (to_list hand) in
 
-            (* Checking for Full House 
-               (and by extension finding out if trio exists) *)
-            let fh = check_fh sort.ranks in
-            if fh > 0 then fh else
-              (* Rank of trio if trio exists (chance for optimization) *)
-              (* let trio = if fh < 0 then 0 - fh else 0 in *)
+  (* Checking for flushes *)
+  let flushes = check_flushes sort in
+  if flushes > 0 then flushes else
 
-              (* Checking for a straight *)
-              let straight = check_straight sort.ranks in
-              if straight > 0 then straight else
+    (* Checking for FoaK *)
+    let foak = check_foak sort.ranks in
+    if foak > 0 then foak else
 
-                (* Checking for a trio *)
-                let trio = check_trio false sort.ranks in
-                if trio > 0 then trio else
+      (* Checking for Full House *)
+      let fh = check_fh sort.ranks in
+      if fh > 0 then fh else
 
-                  (* Checking for two pair *)
-                  let twopair = check_twopair sort.ranks in
-                  if twopair > 0 then twopair else
+        (* Checking for a straight *)
+        let straight = check_straight sort.ranks in
+        if straight > 0 then straight else
 
-                    (* Checking for pairs *)
-                    let pair = check_pair false sort.ranks in
-                    if pair > 0 then pair else
+          (* Checking for a trio *)
+          let trio = check_trio false sort.ranks in
+          if trio > 0 then trio else
 
-                      (* Get high card value *)
-                      get_highcard (List.sort compare (List.map dec sort.ranks))
+            (* Checking for two pair *)
+            let twopair = check_twopair sort.ranks in
+            if twopair > 0 then twopair else
+
+              (* Checking for pairs *)
+              let pair = check_pair false sort.ranks in
+              if pair > 0 then pair else
+
+                (* Get high card value *)
+                get_highcard (List.sort compare (List.map dec sort.ranks))
