@@ -140,6 +140,10 @@ val raise : int -> state -> player -> state
       maximum bet in [st]. *)
 val all_in : state -> player -> state
 
+(** [only_one_player st] is true if there's more than one active player
+    in the game and false otherwise. *)
+val only_one_player : state -> bool
+
 (** [get_info st p] is info for [p] to help [p] make a better betting 
     decision in [st]. *)
 val get_info : state -> player -> info

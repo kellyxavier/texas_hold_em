@@ -90,6 +90,7 @@ let player4 = change_money (create_player "D") (-50)
 let player_lst1 = [player1; player2; player3]
 let player_lst2 = [player1; player2; player3; player4]
 
+let test_state_empty = new_round [player1]
 let test_state1 = new_round player_lst1
 let test_state2 = change_current_bet 
     (change_max_bet (new_round player_lst2) 500) 100
@@ -146,9 +147,14 @@ let state_round_v_tests = [
                                                (fun _ -> raise 476 test_state2 
                                                    player4));
 
+  "correctly identifies an active player list of one or fewer players" >::
+    (fun _ -> assert_equal true (only_one_player test_state_empty));
+  "correctly identifies an active player list of more than 1 players" >::
+    (fun _ -> assert_equal false (only_one_player test_state1));
 ]
 
-let p1 = create_player "valeria"
+let p1 = create_player "tester"
+let p2 = change_money (create_player "bankrupt") (-5000)
 let ai = create_ai_player Med
 
 let player_tests = [
@@ -196,6 +202,42 @@ let player_tests = [
 
   "human player is not an AI" >:: (fun _ -> assert_equal false (is_ai p1));
   "AI player is an AI" >:: (fun _ -> assert_equal true (is_ai ai));
+
+  "\"Easy AI\" is an AI name" >:: (fun _ -> assert_equal true (is_ai_name 
+    "Easy AI"));
+  "\"Medium AI\" is an AI name" >:: (fun _ -> assert_equal true (is_ai_name 
+    "Medium AI"));
+  "\"Hard AI\" is an AI name" >:: (fun _ -> assert_equal true (is_ai_name 
+    "Hard AI"));
+  "names that aren't reserved for the AI correctly identified" >:: (fun _ -> 
+    assert_equal false (is_ai_name "Test"));
+  "names that aren't reserved for the AI correctly identified" >:: (fun _ -> 
+    assert_equal false (is_ai_name ""));
+
+  "correctly identifies a list of AIs" >:: (fun _ -> assert_equal true
+    (only_ais [ai]));
+  "correctly identifies a list of non-AIs" >:: (fun _ -> assert_equal false
+    (only_ais [p1]));
+  "the empty list does not have AIs" >:: (fun _ -> assert_equal false
+    (only_ais []));
+
+  "correctly identifies when one player is broke" >:: (fun _ -> assert_equal
+    true (one_no_money [p2]));
+  "correctly identifies when more than one player is broke" >:: (fun _ -> 
+    assert_equal true (one_no_money [p2; p2]));
+  "correctly identifies when one player is broke" >:: (fun _ -> assert_equal
+    false (one_no_money [p1]));
+  "the empty list does not have one player without money" >:: (fun _ -> 
+    assert_equal false (one_no_money []));
+
+  "correctly identifies when all players are broke" >:: (fun _ -> assert_equal
+    true (one_no_money [p2; p2]));
+  "correctly identifies when some players are broke" >:: (fun _ -> 
+    assert_equal true (one_no_money [p1; p2]));
+  "correctly identifies when no players are broke" >:: (fun _ -> assert_equal
+    false (one_no_money [p1]));
+  "the empty list does not have players without money" >:: (fun _ -> 
+    assert_equal false (one_no_money []));
 ]
 
 let tests =

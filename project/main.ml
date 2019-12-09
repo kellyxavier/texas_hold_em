@@ -13,37 +13,6 @@ let wait () =
   match read_line () with
   | _ -> ()
 
-(** [more_than_one_player st] is true if there's more than one active player
-    in the game and false otherwise. *)
-let only_one_player st =
-  (active_players st) |> List.length < 2
-
-(** [only_ais players] is true if all players in [players] are AIs and false
-    otherwise. *)
-let rec only_ais players =
-  match players with
-  | [] -> true
-  | h :: t -> if is_ai h then only_ais t else false
-
-(** [all_no_money players] is true if no player in [players] has money and 
-    false otherwise. *)
-let rec all_no_money players  =
-  match players with
-  | [] -> true
-  | h :: t -> if money h = 0 then all_no_money t else false 
-
-(** [one_no_money players] is true if at least one player has no money and
-    false otherwise. *)
-let rec one_no_money players =
-  match players with 
-  | [] -> false
-  | h :: t -> if money h = 0 then true else one_no_money t
-
-(** [is_ai_name n] is true if [n] is either "Easy AI", "Medium AI", or "Hard AI"
-    and false otherwise. *)
-let is_ai_name n =
-  n = "Easy AI" || n = "Medium AI" || n = "Hard AI"
-
 (** [get_valid_name lst i] is a name prompted by the [i]th user that is neither 
     empty nor already in [lst]. *)
 let rec get_valid_name lst i =
@@ -595,7 +564,8 @@ let add_ai st diff =
     then returns a state with such an AI. *)
 let rec pick_diff st =
   let only_p_name = names_to_string false (active_players st) "" in
-  print_endline (only_p_name ^ ", what level difficulty AI do you want? Easy, medium, or hard?");
+  print_endline (only_p_name ^ ", what level difficulty AI do you want? " ^
+    "'easy', 'medium', or 'hard'?");
   print_string "> ";
   match read_line () with
   | str -> 
@@ -666,4 +636,6 @@ let main () =
   print_endline "Make sure to play this game in full screen!";
   get_players () 
 
-let () = main ()
+let () = 
+  try main ()
+  with e -> print_endline "You have ended the game. Thanks for playing!"; ()

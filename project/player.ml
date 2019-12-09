@@ -81,3 +81,21 @@ let reset_last_move p =
 
 let is_ai p =
   p.is_ai
+
+let is_ai_name n =
+  n = "Easy AI" || n = "Medium AI" || n = "Hard AI"
+
+let rec only_ais players =
+  match players with
+  | [] -> false
+  | h :: t -> if not (is_ai h) then only_ais t else true
+
+let rec one_no_money players =
+  match players with 
+  | [] -> false
+  | h :: t -> if money h = 0 then true else one_no_money t
+
+let rec all_no_money players =
+  match players with
+  | [] -> true
+  | h :: t -> if money h = 0 then all_no_money t else false 

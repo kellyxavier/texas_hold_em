@@ -221,6 +221,9 @@ let raise r st p =
 let all_in st p =
   let r = money p - (st.current_bet - money_betted p) in raise r st p
 
+let only_one_player st =
+  (active_players st) |> List.length < 2
+
 (** [other_wallets lst n acc] is a list of tuples of a player in [lst] that is
     not [n] and how much money they have left. *)
 let rec other_wallets lst n acc =

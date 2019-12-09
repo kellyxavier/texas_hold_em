@@ -78,3 +78,19 @@ val reset_last_move : player -> player
 
 (** [is_ai p] is the AI status of [p]. *)
 val is_ai : player -> bool
+
+(** [is_ai_name n] is true if [n] is either "Easy AI", "Medium AI", or "Hard AI"
+    and false otherwise. *)
+val is_ai_name : string -> bool
+
+(** [only_ais players] is true if all players in [players] are AIs and false
+    otherwise. *)
+val only_ais : player list -> bool
+
+(** [one_no_money players] is true if at least one player has no money and
+    false otherwise. *)
+val one_no_money : player list -> bool
+
+(** [all_no_money players] is true if no player in [players] has money and 
+    false otherwise. *)
+val all_no_money : player list -> bool
