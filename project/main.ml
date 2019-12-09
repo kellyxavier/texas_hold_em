@@ -386,7 +386,7 @@ let first_round_betting st =
 (** [betting st] prints the private information of each players to 
     the terminal, clearing the terminal between each player*)
 let rec betting st =
-  if only_one_player st then st
+  if only_one_player st || one_no_money (active_players st) then st
   else betting_aux true (st |> active_players) st
 
 (** [flop st] draws 3 cards and places them on the table. It prints out the
@@ -663,6 +663,7 @@ let main () =
   print_endline "\n\nWelcome to Texas Hold 'Em!";
   print_endline "House Rules: You cannot bet more than the wallet of the poorest player.";
   print_endline "Honor System: Please do not scroll up to see your opponents' private information.";
+  print_endline "Make sure to play this game in full screen!";
   get_players () 
 
 let () = main ()
