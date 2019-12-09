@@ -19,25 +19,34 @@ exception Empty
 
 exception Malformed
 
+(** [parse_raise trm_word_list] parses player's input into a [Call] command if 
+    attempting to raise 0, parses player's input into a [Raise i] command if 
+    attempting to raise another integer.
+    Raises: [Malformed] if the commmand is malformed*)
+let parse_raise trm_word_list =
+  match int_of_string (List.nth trm_word_list 1) with
+  | 0 -> Call
+  | i -> Raise i
+  | exception _ -> raise Malformed
+
 let parse str = 
   let str_lower = String.lowercase_ascii str in
   let phrase = String.trim str_lower in
   if phrase = "" then raise Empty else
-    let word_list = String.split_on_char ' ' (phrase) in
-    let trimmed_word_list = List.filter (fun s -> s <> "") word_list in
-    let command = List.nth trimmed_word_list 0 in
-    if phrase = "quit" then Quit
-    else if phrase = "continue" then Continue
-    else if phrase = "fold" then Fold
-    else if phrase = "call" then Call
-    else if phrase = "check" then Check
-    else if phrase = "allin" then Allin
-    else if List.length trimmed_word_list = 2 &&  command = "raise"
-    then match int_of_string (List.nth trimmed_word_list 1) with
-      | 0 -> Call
-      | i -> Raise i 
-      | exception _ -> raise Malformed
-    else raise Malformed
+    begin
+      let word_list = String.split_on_char ' ' (phrase) in
+      let trimmed_word_list = List.filter (fun s -> s <> "") word_list in
+      let command = List.nth trimmed_word_list 0 in
+      if phrase = "quit" then Quit
+      else if phrase = "continue" then Continue
+      else if phrase = "fold" then Fold
+      else if phrase = "call" then Call
+      else if phrase = "check" then Check
+      else if phrase = "allin" then Allin
+      else if List.length trimmed_word_list = 2 &&  command = "raise" 
+      then parse_raise trimmed_word_list
+      else raise Malformed
+    end
 
 let diff str =
   let str_lower = String.lowercase_ascii str in

@@ -288,13 +288,12 @@ and continued_betting players st =
       | [] -> failwith "betting without players"
       | h :: [] -> st
       | h::t -> 
-        ANSITerminal.erase Above;
-        if money h = 0 then continued_betting t st else 
-          begin
-            if is_ai h 
-            then ai_turn st h t false
-            else human_turn st h t false
-          end
+        begin
+          ANSITerminal.erase Above;
+          if money h = 0 then continued_betting t st  
+          else if is_ai h then ai_turn st h t false
+          else human_turn st h t false
+        end
     end
 
 (** [ai_turn st ai rest_of_ps] performs the turn for [ai] and then continues 
@@ -307,39 +306,49 @@ and ai_turn st ai rest_of_ps b =
       execute (make_hard_move st (get_info st ai)) ai st
     else execute (make_med_move st (get_info st ai)) ai st in 
   match act with
-  | (st', raised) -> 
-    if raised 
-    then continued_betting (st' |> active_players |> place_last ai) st' 
-    else betting_aux b rest_of_ps st'
+  | (st', raised) ->
+    begin 
+      if raised 
+      then continued_betting (st' |> active_players |> place_last ai) st' 
+      else betting_aux b rest_of_ps st'
+    end
 
-(** [human_turn st human rest_of_ps] performs the turn for [human] and then 
-    continues with the betting round for [rest_of_ps]. *)
+(** [human_turn st human rest_of_ps] prints out info to the human player and 
+    is the state after it performs the turn for [human] and then continues 
+    with the betting round for [rest_of_ps]. *)
 and human_turn st human rest_of_ps b =
   print_endline ("\n\n"^(name human)^", press enter when you are alone");
   print_string "> ";
   match read_line () with 
   | _ -> 
-    show_info human st; 
-    (* let need_to_stay_in =  current_bet st - money_betted h in *)
-    (* print_endline ("You must bet at least $" ^ string_of_int (current_bet st - money_betted h) ^ " to stay in the game."); *)
-    if current_bet st - money_betted human = 0 
-    then
-      print_endline ("Your options are 'fold', 'check', 'call', 'allin', 'raise x',\nwhere x is a positive integer.")
-    else
-      print_endline ("Your options are 'fold', 'call', 'allin', 'raise x', \nwhere x is a positive integer.\n");
-    print_endline "What would you like to do?";         
-    print_string "> ";
-    match read_line () with
-    | str -> 
-      let act = execute str human st in 
-      begin
-        match act with
-        | (st', raised) -> 
-          if raised then continued_betting (st' |> active_players |> 
-                                            place_last human) st' 
-          else betting_aux b rest_of_ps st'
-      end
+    begin
+      show_info human st; 
+      if current_bet st - money_betted human = 0 
+      then
+        print_endline ("Your options are 'fold', 'check', 'call', 'allin', " ^
+                       "'raise x',\nwhere x is a positive integer.")
+      else
+        print_endline ("Your options are 'fold', 'call', 'allin', 'raise x', " ^ 
+                       "\nwhere x is a positive integer.\n");
+      print_endline "What would you like to do?";         
+      print_string "> ";
+      execute_human_turn st human rest_of_ps b
+    end
 
+(** [human_turn st act str human rest_of_ps b] is the state after it performs 
+    the turn for [human] and then continues with the betting round for 
+    [rest_of_ps]. *)
+and execute_human_turn st human rest_of_ps b =
+  match read_line () with
+  | str -> 
+    let act = execute str human st in 
+    begin
+      match act with
+      | (st', raised) -> 
+        if raised then continued_betting (st' |> active_players |> 
+                                          place_last human) st' 
+        else betting_aux b rest_of_ps st'
+    end
 
 (** [betting_aux players] prints the private information of each players to 
     the terminal, clearing the terminal between each player*)
@@ -363,48 +372,62 @@ let rec betting st =
 let flop st = 
   if only_one_player st then st
   else
-    let d = draw_card 3 (rem_deck st) in
-    let st' = change_table (change_rem_deck (snd d) st) (fst d) in 
-    let st'' = change_active_players st' (List.map (fun p -> reset_last_move p) (active_players st')) in
-    show_flop st''; st''
+    begin
+      let d = draw_card 3 (rem_deck st) in
+      let st' = change_table (change_rem_deck (snd d) st) (fst d) in 
+      let st'' = change_active_players st' (List.map (fun p -> reset_last_move p) 
+                                              (active_players st')) in
+      show_flop st''; st''
+    end
 
 (** [turn st] draws 1 card and places it on the table. It prints out the
     table information to all players. *)
 let turn st = 
   if only_one_player st then st
   else
-    let d = draw_card 1 (rem_deck st) in
-    let st' = change_table (change_rem_deck (snd d) st) (fst d) in 
-    let st'' = change_active_players st' (List.map (fun p -> reset_last_move p) (active_players st')) in
-    show_turn st''; st''
+    begin
+      let d = draw_card 1 (rem_deck st) in
+      let st' = change_table (change_rem_deck (snd d) st) (fst d) in 
+      let st'' = change_active_players st' (List.map (fun p -> reset_last_move p) 
+                                              (active_players st')) in
+      show_turn st''; st''
+    end
 
 (** [river st] draws the final card and places it on the table. It prints out 
     the table information to all players. *)
 let river st = 
   if only_one_player st then st
   else
-    let d = draw_card 1 (rem_deck st) in
-    let st' = change_table (change_rem_deck (snd d) st) (fst d) in
-    let st'' = change_active_players st' (List.map (fun p -> reset_last_move p) (active_players st')) in 
-    show_river st''; st''
+    begin
+      let d = draw_card 1 (rem_deck st) in
+      let st' = change_table (change_rem_deck (snd d) st) (fst d) in
+      let st'' = change_active_players st' (List.map (fun p -> reset_last_move p) 
+                                              (active_players st')) in 
+      show_river st''; st''
+    end
 
 (** [show_down_aux st players high acc] is a list of players which have the
     best hand taking into account cards in the hole and on the table. *)
 let rec show_down_aux st players high acc =
   match players with 
   | [] -> List.rev acc
-  | h :: t -> let h_value = add (h |> hand) (st |> table) |> hand_value in 
-    if h_value > high then show_down_aux st t h_value ([h])
-    else if h_value = high then show_down_aux st t high (h :: acc)
-    else show_down_aux st t high (acc)
+  | h :: t -> 
+    begin 
+      let h_value = add (h |> hand) (st |> table) |> hand_value in 
+      if h_value > high then show_down_aux st t h_value ([h])
+      else if h_value = high then show_down_aux st t high (h :: acc)
+      else show_down_aux st t high (acc)
+    end
 
 (** names_to_string more_than_one players acc] prints out the names of 
     [players]. *)
 let rec names_to_string more_than_one players acc =
   match players with 
   | [] -> acc
-  | h1 :: h2 :: [] -> names_to_string more_than_one (h2 :: []) (acc ^ name h1 ^ " ")
-  | h1 :: h2 :: t -> names_to_string more_than_one (h2 :: t) (acc ^ name h1 ^ ", ")
+  | h1 :: h2 :: [] -> names_to_string more_than_one (h2 :: []) (acc ^ 
+                                                                name h1 ^ " ")
+  | h1 :: h2 :: t -> names_to_string more_than_one (h2 :: t) (acc 
+                                                              ^ name h1 ^ ", ")
   | h :: [] -> 
     begin
       if more_than_one 
@@ -425,7 +448,8 @@ let rec split_pot st aps winners won_money acc =
 let rec print_cards lst acc =
   match lst with
   | [] -> acc
-  | h :: t -> print_cards t (acc ^ "\n" ^ name h ^ " had the following cards:\n" ^ (h |> hand |> to_string))
+  | h :: t -> print_cards t (acc ^ "\n" ^ name h ^ " had the following cards:\n"
+                             ^ (h |> hand |> to_string))
 
 (** [net_winnings winners money] is the net amount of [money] won be each 
     [winner] since the beginning of the current game. *)
@@ -434,43 +458,52 @@ let net_winnings winners money =
   | [] -> failwith "no winner"
   | h :: _ -> money - (money_betted h)
 
-(** [folded_players st] is a player list consisting only of the players who folded in [st] *)
+(** [folded_players st] is a player list consisting only of the players who 
+    folded in [st] *)
 let folded_players st =
   let act_ps_names = List.map (fun p -> name p) (active_players st) in
   List.filter (fun p -> not (List.mem (name p) act_ps_names)) (all_players st)
 
-(** [show_win_info st winners won_money_total won_money_net aps] is an updated [st] which reflects
-    the winning status of [winners]. *)
+(** [show_win_info st winners won_money_total won_money_net aps] is an updated 
+    [st] which reflects the winning status of [winners]. *)
 let rec show_win_info st winners won_money aps =
   let f_players = folded_players st in
   let f_names = names_to_string (List.length f_players > 1) f_players "" in
   let net = net_winnings winners won_money in
-  if List.length f_players <> 0 then print_endline (f_names ^ " folded in this round of poker.");
-  print_endline ((names_to_string (List.length winners > 1) winners "") ^ " won $" ^ string_of_int net ^ " in this round of poker!"); 
-  change_active_players st (split_pot st (st |> active_players) winners won_money [])
+  if List.length f_players <> 0 then print_endline (f_names ^ " folded in " ^ 
+                                                    "this round of poker.");
+  print_endline ((names_to_string (List.length winners > 1) winners "") ^ 
+                 " won $" ^ string_of_int net ^ " in this round of poker!"); 
+  change_active_players st (split_pot st (st |> active_players) winners 
+                              won_money [])
 
-(** [show_down st] is the state after comparing all the players' hands to determine the winner(s)*)
+(** [show_down st] is the state after comparing all the players' hands to 
+    determine the winner(s)*)
 let show_down st =
   ANSITerminal.erase Above;
   if only_one_player st
-  then show_win_info st (active_players st) (betting_pool st) (active_players st) 
+  then show_win_info st (active_players st) (betting_pool st) (active_players 
+                                                                 st) 
   else
     begin 
       let winners = show_down_aux st (active_players st) 0 [] in
-      print_endline ("These were the final cards on the table:\n" ^ (st |> table |> to_string));
+      print_endline ("These were the final cards on the table:\n" ^ 
+                     (st |> table |> to_string));
       print_endline (print_cards (active_players st) "");
       show_win_info st winners (betting_pool st / List.length winners) 
         (active_players st)
     end
 
-(** [player_continuing str] is true if [str] parses to continue and false if [str] parses to quit*)
+(** [player_continuing str] is true if [str] parses to continue and false if 
+    [str] parses to quit*)
 let rec player_continuing str =
   match parse str with
   | Quit -> false
   | Continue -> true
   | exception Empty -> 
     begin
-      print_endline "You cannot enter an empty command. Please enter quit or continue!";
+      print_endline ("You cannot enter an empty command. " ^ 
+                     "\nPlease enter quit or continue!");
       print_string "> ";
       match read_line () with
       | str -> player_continuing str
@@ -490,54 +523,68 @@ let rec player_continuing str =
       | str -> player_continuing str
     end
 
-(** [quit_or_cont players acc] is the players left at the end of the game who have not quit and have enough money to continue the game*)
-let rec quit_or_cont players acc =
+(** [quit_or_cont_aux p rest_of_ps acc] is the players left at the end of the 
+    game who have not quit and have enough money to continue the game when the 
+    current player [p] has enough money to continue playing*)
+let rec quit_or_cont_aux p rest_of_ps acc =
+  if is_ai p then quit_or_cont rest_of_ps (p :: acc) 
+  else (
+    print_endline "Would you like to quit or continue?";
+    print_string "> ";
+    match read_line () with
+    | str -> if player_continuing str then quit_or_cont rest_of_ps (p :: acc)
+      else quit_or_cont rest_of_ps acc )
+
+(** [quit_or_cont players acc] is the players left at the end of the game who 
+    have not quit and have enough money to continue the game*)
+and quit_or_cont players acc =
   match players with 
   | [] -> List.rev acc
   | h :: t -> 
     let m = money h in
     print_endline ("\n" ^ name h ^ ", you now have $" ^ (string_of_int m));
     if m <= 0 
-    then (print_endline "You are out of money and are now invited to leave the table."; 
+    then (print_endline ("You are out of money and are now invited to leave " ^ 
+                         "the table."); 
           quit_or_cont t acc)
     else if m < 50 
-    then (print_endline "You do not have the $50 necessary to continue playing at this table. You now are invited to leave."; 
+    then (print_endline ("You do not have the $50 necessary to continue playing"
+                         ^ " at this table. You now are invited to leave."); 
           quit_or_cont t acc)
-    else (
-      if is_ai h then quit_or_cont t (h :: acc) 
-      else (
-        print_endline "Would you like to quit or continue?";
-        print_string "> ";
-        match read_line () with
-        | str -> if player_continuing str then quit_or_cont t (h :: acc)
-          else quit_or_cont t acc ))
+    else quit_or_cont_aux h t acc
 
-(**[game_over players winner] displays the final win message to [winner] and losing messages to the losing players*)
-let rec game_over players winner =
+(**[game_over players winner] displays the lose bankrupt message to [p] and 
+   appropriate end messages to [rest of ps]*)
+let rec game_over_broke p rest_of_ps winner =
+  print_endline ("\n\n" ^ name p ^ ", you are out of money " ^ 
+                 "and are now invited to leave the table.");
+  game_over rest_of_ps winner
+
+(**[game_over players winner] displays the lose not enough money message to [p]
+   and appropriate end messages to [rest of ps]*)
+and game_over_not_enough p rest_of_ps winner =
+  print_endline ("\n\n" ^ name p ^ ", you only have " ^ 
+                 string_of_int (money p) ^ ". You do not have the " ^ 
+                 "$50 necessary to continue " ^ "playing at this table." 
+                 ^ " You now are invited to leave.");
+  game_over rest_of_ps winner
+
+(**[game_over players winner] displays the final win message to [winner] and 
+   losing messages to the losing players*)
+and game_over players winner =
   match players with
-  | [] -> print_endline ("\n\n\n\n" ^ winner ^ ", congratulations! YOU WON THE GAME!!");
+  | [] -> print_endline ("\n\n\n\n" ^ winner ^ 
+                         ", congratulations! YOU WON THE GAME!!");
   |  h :: t -> 
     begin
       let m = money h in
-      if m <= 0 
-      then 
-        begin
-          print_endline ("\n\n" ^ name h ^ ", you are out of money and are now invited to leave the table.");
-          game_over t winner
-        end
-      else if m < 50
-      then 
-        begin
-          print_endline ("\n\n" ^ name h ^ ", you only have " ^ string_of_int (money h) ^". You do not have the $50 necessary to continue playing at this table. You now are invited to leave.");
-          game_over t winner
-        end
-      else 
-        begin
-          game_over t (name h)
-        end
+      if m <= 0 then game_over_broke h t winner
+      else if m < 50 then game_over_not_enough h t winner
+      else game_over t (name h)
     end
 
-(** [all_but_one_cant_play players acc] is true if only one player can continue playing in the game*)
+(** [all_but_one_cant_play players acc] is true if only one player can continue 
+    playing in the game*)
 let rec all_but_one_cant_play players acc =
   match players with
   | [] -> acc = 1
@@ -554,9 +601,7 @@ let end_game st =
 
 (** [add_ai st diff] is an updated [st] with an AI player in the last position 
     of both player lists and difficulty set to [diff].
-
-    [diff] must match either "Easy AI" or "Hard AI" (or "Medium AI") if it does not match
-    one of those entries, the AI will default to "Medium AI" *)
+    Requires: [diff] must match either "Easy AI" or "Hard AI" or "Medium AI" *)
 let add_ai st diff =
   create_ai_player diff :: [] |> List.append (all_players st) |> new_round
 
@@ -565,7 +610,7 @@ let add_ai st diff =
 let rec pick_diff st =
   let only_p_name = names_to_string false (active_players st) "" in
   print_endline (only_p_name ^ ", what level difficulty AI do you want? " ^
-    "'easy', 'medium', or 'hard'?");
+                 "'easy', 'medium', or 'hard'?");
   print_string "> ";
   match read_line () with
   | str -> 
@@ -579,7 +624,8 @@ let rec pick_diff st =
       end
     | _ -> add_ai st (diff str)
 
-(** [next_game players] is the state of the next game with [players] in the game *)
+(** [next_game players] is the state of the next game with [players] in the 
+    game *)
 let rec next_game players = 
   if List.length players = 0 || only_ais players 
   then print_endline "Thanks for playing!"
@@ -631,8 +677,10 @@ let rec get_players () =
 let main () =
   ANSITerminal.erase Above;
   print_endline "\n\nWelcome to Texas Hold 'Em!";
-  print_endline "House Rules: You cannot bet more than the wallet of the poorest player.";
-  print_endline "Honor System: Please do not scroll up to see your opponents' private information.";
+  print_endline ("House Rules: You cannot bet more than the wallet of the " ^ 
+                 "poorest player.");
+  print_endline ("Honor System: Please do not scroll up to see your opponents' "
+                 ^ "private information.");
   print_endline "Make sure to play this game in full screen!";
   get_players () 
 

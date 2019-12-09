@@ -42,8 +42,10 @@ let rec shuffle_help n d lst =
   Random.self_init ();
   if n > 0
   then
-    match get_card (Random.int n) d [] with
-    | (c, r) -> shuffle_help (n - 1) r (c :: lst)
+    begin
+      match get_card (Random.int n) d [] with
+      | (c, r) -> shuffle_help (n - 1) r (c :: lst)
+    end
   else lst
 
 let shuffle u =
@@ -62,9 +64,12 @@ let insert s r d =
 let rec draw_card_help n d lst =
   if n < 0 then raise InvalidArgument
   else if n > 0 
-  then match d with
-    | [] -> raise EmptyDeck
-    | h :: t -> draw_card_help (n - 1) t (h :: lst)
+  then 
+    begin
+      match d with
+      | [] -> raise EmptyDeck
+      | h :: t -> draw_card_help (n - 1) t (h :: lst)
+    end
   else (lst, d)
 
 let draw_card n d =
