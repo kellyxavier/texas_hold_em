@@ -1,5 +1,4 @@
 open OUnit2
-open OUnit2
 open Rank_hand
 open Hands
 
