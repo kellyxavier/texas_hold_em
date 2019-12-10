@@ -84,7 +84,8 @@ val is_ai : player -> bool
 val is_ai_name : string -> bool
 
 (** [only_ais players] is true if all players in [players] are AIs and false
-    otherwise. *)
+    otherwise. 
+    Requires: [players] is not the empty list. *)
 val only_ais : player list -> bool
 
 (** [one_no_money players] is true if at least one player has no money and

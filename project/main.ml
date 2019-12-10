@@ -388,8 +388,8 @@ let turn st =
     begin
       let d = draw_card 1 (rem_deck st) in
       let st' = change_table (change_rem_deck (snd d) st) (fst d) in 
-      let st'' = change_active_players st' (List.map (fun p -> reset_last_move p) 
-                                              (active_players st')) in
+      let st'' = change_active_players st' 
+          (List.map (fun p -> reset_last_move p) (active_players st')) in
       show_turn st''; st''
     end
 
@@ -401,8 +401,8 @@ let river st =
     begin
       let d = draw_card 1 (rem_deck st) in
       let st' = change_table (change_rem_deck (snd d) st) (fst d) in
-      let st'' = change_active_players st' (List.map (fun p -> reset_last_move p) 
-                                              (active_players st')) in 
+      let st'' = change_active_players st' 
+          (List.map (fun p -> reset_last_move p) (active_players st')) in 
       show_river st''; st''
     end
 

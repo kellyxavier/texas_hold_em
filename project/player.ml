@@ -87,8 +87,8 @@ let is_ai_name n =
 
 let rec only_ais players =
   match players with
-  | [] -> false
-  | h :: t -> if not (is_ai h) then only_ais t else true
+  | [] -> true
+  | h :: t -> if not (is_ai h) then false else only_ais t
 
 let rec one_no_money players =
   match players with 
