@@ -1,8 +1,8 @@
-open State
-
 (** 
     Functions for AI "reasoning" 
 *)
+
+open State
 
 (** [make_easy_move st info] is the string representing the move an easy
     difficulty AI would make given the state [st] and information [info] *)
