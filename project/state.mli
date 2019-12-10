@@ -1,13 +1,13 @@
-open Deck
-open Player
-open Command
-
 (** 
    Representation of dynamic game state.
    This module represents the state of a game as it is being played,
    including the game's current list of players, the deck on the table,
    the betting pool, and functions that cause the state to change.
 *)
+
+open Deck
+open Player
+open Command
 
 (** [InvalidPlayerList] raises when the client tries to start a game with 
       less than 2 or more than 10 players. *)

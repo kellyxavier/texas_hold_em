@@ -1,9 +1,9 @@
-open Deck
-open Command
-
 (** 
     Representation of a player in the game.
 *)
+
+open Deck
+open Command
 
 (** The type [status] represents the status of a player*)
 type s =

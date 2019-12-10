@@ -1,8 +1,8 @@
-open Deck
-
 (** 
     Premade hands for use in the automated testing of Rank_hand
 *)
+
+open Deck
 
 (*================PARTIAL HANDS (for AI)==========*)
 (*================HIGH CARD HANDS=================*)
