@@ -419,7 +419,7 @@ let rec show_down_aux st players high acc =
       else show_down_aux st t high (acc)
     end
 
-(** names_to_string more_than_one players acc] prints out the names of 
+(** [names_to_string more_than_one players acc] prints out the names of 
     [players]. *)
 let rec names_to_string more_than_one players acc =
   match players with 

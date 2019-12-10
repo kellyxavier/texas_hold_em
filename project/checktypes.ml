@@ -2,6 +2,9 @@ open Deck
 open Player
 open State
 open Command
+open Test_d
+open Test_k
+open Test_v
 
 module type DeckSig = sig 
   exception EmptyDeck
@@ -174,3 +177,13 @@ module type AiSig = sig
 end
 
 module AiCheck : AiSig = Ai
+
+module type TestSig = sig 
+  val tests : OUnit2.test list
+end
+
+module TestDCheck : TestSig = Test_d
+
+module TestKCheck : TestSig = Test_k
+
+module TestVCheck : TestSig = Test_v
