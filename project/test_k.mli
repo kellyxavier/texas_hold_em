@@ -1,3 +1,5 @@
+open OUnit2
+
 (** Representation for individual test cases
       in order to avoid merge conflicts *)
 

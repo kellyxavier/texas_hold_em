@@ -1,5 +1,9 @@
 open Deck
 
+(** 
+    Premade hands for use in the automated testing of Rank_hand
+*)
+
 (*================PARTIAL HANDS (for AI)==========*)
 (*================HIGH CARD HANDS=================*)
 (** [hc_high] is the hand containing only a high card (King) *)
